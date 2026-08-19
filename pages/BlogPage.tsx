@@ -1,0 +1,294 @@
+import React, { useState, useEffect } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Clock, ArrowRight, X, ArrowUpRight } from 'lucide-react';
+import { PortfolioData, Blog } from '../types';
+import {
+  PageShell,
+  Reveal,
+  SplitText,
+  SectionLabel,
+  Stagger,
+  StaggerItem,
+  Parallax,
+  Magnetic,
+  EASE,
+} from '../components/Motion';
+import EditorialCard from '../components/EditorialCard';
+
+interface BlogPageProps {
+  data: PortfolioData;
+}
+
+const Meta: React.FC<{ blog: Blog; light?: boolean }> = ({ blog, light }) => (
+  <div
+    className={`flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.18em] ${
+      light ? 'text-neutral-400' : 'text-neutral-400'
+    }`}
+  >
+    <span>{blog.date}</span>
+    <span className="h-1 w-1 rounded-full bg-[var(--ink)]" />
+    <span className="flex items-center gap-1.5">
+      <Clock size={11} /> {blog.readTime}
+    </span>
+  </div>
+);
+
+const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
+  const blogs = (data?.blogs || []).filter(Boolean);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const reduced = useReducedMotion();
+
+  const [featured, ...rest] = blogs;
+  const openBlog = blogs.find((b) => b.id === openId) || null;
+
+  // While the reader is open: dismiss on Escape and stop the page behind it scrolling.
+  useEffect(() => {
+    if (!openBlog) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenId(null);
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [openBlog]);
+
+  return (
+    <PageShell className="min-h-screen bg-[var(--paper)]">
+      {/* ---------- Masthead ---------- */}
+      <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-40">
+        <div className="pointer-events-none absolute -left-32 -top-32 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[120px]" />
+
+        <div className="relative mx-auto max-w-7xl">
+          <Reveal>
+            <SectionLabel className="mb-8">Journal</SectionLabel>
+          </Reveal>
+
+          <SplitText
+            as="h1"
+            text="Latest insights."
+            accent={['insights.']}
+            className="display mb-12 text-[3.5rem] text-neutral-900 md:text-[8rem]"
+          />
+
+          <Reveal delay={0.3} className="max-w-2xl">
+            <p className="text-lg font-light leading-relaxed text-neutral-500 md:text-xl">
+              Thoughts on design trends, industry shifts, and the evolving relationship between
+              humans and the machines they design for.
+            </p>
+          </Reveal>
+        </div>
+      </header>
+
+      {/* ---------- Featured ---------- */}
+      {featured && (
+        <section className="border-t border-black/[0.05] px-6 py-24">
+          <div className="mx-auto max-w-7xl">
+            <Reveal className="mb-10">
+              <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">
+                Featured
+              </span>
+            </Reveal>
+
+            <Reveal delay={0.1}>
+              <button
+                onClick={() => setOpenId(featured.id)}
+                className="group block w-full text-left"
+              >
+                <div className="grid gap-0 border-t border-[var(--ink)] lg:grid-cols-2">
+                  <div className="relative aspect-[16/11] overflow-hidden bg-neutral-200">
+                    <Parallax offset={-20} className="absolute inset-[-10%]">
+                      <img
+                        src={featured.image}
+                        alt={featured.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover grayscale transition-all duration-[1.2s] group-hover:scale-[1.04] group-hover:grayscale-0"
+                      />
+                    </Parallax>
+                    <span className="mono absolute left-4 top-4 text-white mix-blend-difference">
+                      01
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col justify-center py-10 lg:pl-12">
+                    <Meta blog={featured} />
+                    <h2 className="mega mb-6 mt-6 text-[9vw] leading-none md:text-[4vw]">
+                      {featured.title}
+                    </h2>
+                    <p className="mb-10 max-w-md text-base font-light leading-relaxed text-[var(--grey-1)] md:text-lg">
+                      {featured.excerpt}
+                    </p>
+                    <span className="mono inline-flex items-center gap-3">
+                      <span className="link-wipe">Read article</span>
+                      <ArrowRight
+                        size={14}
+                        className="transition-transform duration-500 group-hover:translate-x-1.5"
+                      />
+                    </span>
+                  </div>
+                </div>
+              </button>
+            </Reveal>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- Archive grid ---------- */}
+      {rest.length > 0 && (
+        <section className="px-6 pb-28">
+          <div className="mx-auto max-w-7xl">
+            <Reveal className="mb-10 flex items-center gap-4">
+              <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-neutral-400">
+                All entries
+              </span>
+              <span className="h-px flex-1 bg-black/[0.06]" />
+              <span className="text-[9px] font-bold tabular-nums text-neutral-300">
+                {String(rest.length).padStart(2, '0')}
+              </span>
+            </Reveal>
+
+            <Stagger className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3" stagger={0.1}>
+              {rest.map((blog, i) => (
+                <StaggerItem key={blog.id}>
+                  <EditorialCard
+                    to=""
+                    onClick={() => setOpenId(blog.id)}
+                    image={blog.image}
+                    title={blog.title}
+                    meta={blog.readTime}
+                    submeta={blog.date}
+                    description={blog.excerpt}
+                    index={i + 1}
+                    aspect="aspect-[16/10]"
+                  />
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+      )}
+
+      {blogs.length === 0 && (
+        <div className="px-6 py-32 text-center text-neutral-400">
+          No entries found. Check back later.
+        </div>
+      )}
+
+      {/* ---------- Newsletter ---------- */}
+      <section className="px-6 pb-32">
+        <Reveal className="mx-auto max-w-7xl">
+          <div data-nav-theme="dark" className="grain relative overflow-hidden rounded-none bg-neutral-900 p-12 text-center md:p-20">
+            <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 animate-drift rounded-full bg-white/10 blur-[110px]" />
+            <div className="relative z-10">
+              <SplitText
+                as="h2"
+                text="No spam. Just craft."
+                accent={['craft.']}
+                className="display mx-auto mb-6 max-w-xl text-4xl text-white md:text-5xl"
+              />
+              <Reveal delay={0.25}>
+                <p className="mx-auto mb-10 max-w-md text-base font-light text-neutral-400">
+                  One email when something new goes up. Unsubscribe whenever.
+                </p>
+              </Reveal>
+              <Reveal delay={0.35}>
+                <Magnetic strength={0.25} className="inline-block">
+                  <a
+                    href="mailto:ashimkaflebiz@gmail.com?subject=Subscribe%20to%20the%20journal"
+                    className="inline-flex items-center gap-4 rounded-full bg-white px-9 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-900 shadow-2xl transition-colors duration-500 hover:bg-[var(--ink)] hover:text-white"
+                  >
+                    Subscribe
+                    <ArrowUpRight size={15} />
+                  </a>
+                </Magnetic>
+              </Reveal>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ---------- Reader overlay ----------
+          Rendered directly rather than through AnimatePresence: in testing,
+          AnimatePresence's exit-completion signal proved unreliable in this
+          environment, which left the reader stuck open with no way to close
+          it. Entrance still animates on mount; closing is now immediate
+          rather than an animated dismiss. */}
+      {openBlog && (
+          <>
+            <div
+              className="fixed inset-0 z-[150] bg-neutral-900/40 backdrop-blur-sm"
+              onClick={() => setOpenId(null)}
+            />
+
+            <motion.div
+              className="fixed inset-x-0 bottom-0 z-[151] max-h-[92vh] overflow-y-auto rounded-t-[36px] bg-white"
+              initial={reduced ? { opacity: 0 } : { y: '100%' }}
+              animate={reduced ? { opacity: 1 } : { y: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={openBlog.title}
+            >
+              {/* Sticky close bar */}
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.05] bg-white/90 px-6 py-5 backdrop-blur-xl md:px-12">
+                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">
+                  Journal
+                </span>
+                <button
+                  onClick={() => setOpenId(null)}
+                  aria-label="Close article"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.06] text-neutral-500 transition-colors duration-300 hover:border-[var(--ink)] hover:bg-[var(--ink)] hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <article className="mx-auto max-w-3xl px-6 pb-24 pt-14 md:px-0">
+                <Meta blog={openBlog} />
+                <h1 className="display mb-10 mt-6 text-4xl text-neutral-900 md:text-6xl">
+                  {openBlog.title}
+                </h1>
+
+                <div className="mb-12 aspect-[16/9] overflow-hidden rounded-none bg-neutral-100">
+                  <img
+                    src={openBlog.image}
+                    alt={openBlog.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                <p className="mb-10 border-l-2 border-[var(--ink)] pl-6 text-xl font-light italic leading-relaxed text-neutral-600 md:text-2xl">
+                  {openBlog.excerpt}
+                </p>
+
+                <div className="whitespace-pre-wrap text-lg font-light leading-[1.85] text-neutral-600">
+                  {openBlog.content}
+                </div>
+
+                <div className="mt-16 border-t border-black/[0.06] pt-10">
+                  <p className="mb-6 text-sm font-light text-neutral-400">
+                    Enjoyed this? I write when I have something worth saying.
+                  </p>
+                  <a
+                    href="mailto:ashimkaflebiz@gmail.com"
+                    className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
+                  >
+                    <span className="link-wipe">Get in touch</span>
+                    <ArrowRight size={14} />
+                  </a>
+                </div>
+              </article>
+            </motion.div>
+          </>
+      )}
+    </PageShell>
+  );
+};
+
+export default BlogPage;
