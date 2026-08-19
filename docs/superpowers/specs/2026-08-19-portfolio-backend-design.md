@@ -30,6 +30,15 @@ Three concrete failures in the deployed site:
 | Publishing | Saves go live immediately; no draft state |
 | Framework | Stays a Vite SPA. No Next.js migration. |
 | SEO | Out of scope, tracked as a follow-up |
+| Social links | Added to the content model, editable from the dashboard |
+| Delivery | Commits land on `main`, deploying straight to production |
+
+### Deploying straight to production
+
+Work merges to `main`, so each push deploys to `www.ashimkafle.com.np`. The fallback described
+under *Data flow* is what makes this safe: until the Blob store and env vars exist, `GET
+/api/content` fails, the client falls back to `INITIAL_DATA`, and visitors see exactly the site
+they see today. Only `/dashboard` is non-functional in that window.
 
 ## Architecture
 
@@ -104,7 +113,15 @@ response to that.
 - a redirect shim mapping legacy `/#/works` links to `/works`
 - canonical host `www.ashimkafle.com.np`, declared with `<link rel="canonical">`
 - the footer's `#` social placeholders were inert *because* `#` hijacks `HashRouter`. That
-  constraint disappears; they need real Dribbble/Instagram URLs or they stay inert spans.
+  constraint disappears, and social links become content rather than code (below).
+
+### Social links become content
+
+`PortfolioData` gains `social: SocialLink[]`, where `SocialLink` is `{ id, label, url }`. The
+footer and the menu render whatever is in that array; an entry with an empty `url` renders as an
+inert label rather than a dead link, preserving today's behaviour without hardcoding it.
+`INITIAL_DATA` seeds the existing LinkedIn URL plus empty Dribbble and Instagram entries, so
+filling them in later is a dashboard edit and never a code change.
 
 ## Error handling
 
