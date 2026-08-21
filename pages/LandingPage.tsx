@@ -8,7 +8,8 @@ import {
   useSpring,
 } from 'motion/react';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
-import { PortfolioData, Project, Service, GalleryItem } from '../types';
+import { PortfolioData, Project, Service, GalleryItem, SocialLink } from '../types';
+import { INITIAL_DATA } from '../constants';
 import { Reveal, Stagger, StaggerItem, Marquee, Magnetic, Counter, EASE } from '../components/Motion';
 import EditorialCard from '../components/EditorialCard';
 import { VelocityMarquee, ClipReveal, Pulse, HoverSwap } from '../components/MotionExtras';
@@ -34,7 +35,6 @@ const jumpTo = (id: string) => (e: React.MouseEvent) => {
 };
 
 /** Placeholder social link — inert until a real URL is filled in. */
-const isPlaceholder = (href: string) => !href || href === '#';
 
 /* ================================================================== *
  * HERO
@@ -546,7 +546,7 @@ const Gallery: React.FC<{ items: GalleryItem[] }> = ({ items }) => {
  * CONTACT
  * ================================================================== */
 
-const Contact: React.FC = () => (
+const Contact: React.FC<{ social: SocialLink[] }> = ({ social }) => (
   <section
     id="contact"
     className="border-t border-[var(--hairline)] bg-[var(--paper)] pb-20 pt-24 md:pt-32"
@@ -592,31 +592,26 @@ const Contact: React.FC = () => (
         <Reveal delay={0.2}>
           <p className="mono mb-4 text-[var(--grey-1)]">Elsewhere</p>
           <div className="flex flex-col gap-2">
-            {[
-              { name: 'LinkedIn', href: 'https://www.linkedin.com/in/ashim-kafle-676a312a5/' },
-              // TODO: drop in the real profile URLs — these stay inert until then.
-              { name: 'Dribbble', href: '#' },
-              { name: 'Instagram', href: '#' },
-            ].map((s) =>
-              isPlaceholder(s.href) ? (
-                <span
-                  key={s.name}
-                  aria-disabled="true"
-                  title="Link coming soon"
-                  className="w-fit cursor-default text-xl font-medium text-[var(--grey-2)] md:text-2xl"
-                >
-                  {s.name}
-                </span>
-              ) : (
+            {(social?.length ? social : INITIAL_DATA.social).map((s) =>
+              s.url ? (
                 <a
-                  key={s.name}
-                  href={s.href}
+                  key={s.id}
+                  href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link-wipe w-fit text-xl font-medium md:text-2xl"
                 >
-                  {s.name}
+                  {s.label}
                 </a>
+              ) : (
+                <span
+                  key={s.id}
+                  aria-disabled="true"
+                  title="Link coming soon"
+                  className="w-fit cursor-default text-xl font-medium text-[var(--grey-2)] md:text-2xl"
+                >
+                  {s.label}
+                </span>
               ),
             )}
           </div>
@@ -657,7 +652,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
       <Work projects={projects} />
       <Services services={services} />
       <Gallery items={gallery} />
-      <Contact />
+      <Contact social={data.social} />
     </div>
   );
 };
