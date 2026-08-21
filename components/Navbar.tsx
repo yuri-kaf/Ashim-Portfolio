@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Menu, X } from 'lucide-react';
@@ -20,6 +21,7 @@ const Navbar: React.FC<{ data: PortfolioData }> = ({ data }) => {
   ];
 
   const name = data?.name || INITIAL_DATA.name;
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const company = data?.company || INITIAL_DATA.company;
 
   // Light or dark type, decided by whatever surface is under the bar.
@@ -137,15 +139,15 @@ const Navbar: React.FC<{ data: PortfolioData }> = ({ data }) => {
                 <div>
                   <p className="mono mb-3 text-white/40">Email</p>
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com"
+                    href={`mailto:${email}`}
                     className="mono break-all text-white/75 hover:text-white"
                   >
-                    ashimkaflebiz@gmail.com
+                    {email}
                   </a>
                 </div>
                 <div className="sm:justify-self-end">
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com?subject=Project%20enquiry"
+                    href={`mailto:${email}?subject=Project%20enquiry`}
                     className="mono inline-block bg-white px-8 py-4 text-[#0a0a0a] transition-colors duration-300 hover:bg-white/80"
                   >
                     Start a project

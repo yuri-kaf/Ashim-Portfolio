@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ArrowUpRight, LayoutGrid, Rows3 } from 'lucide-react';
@@ -136,6 +137,7 @@ const ListRow: React.FC<{ project: Project; idx: number }> = ({ project, idx }) 
  * ---------------------------------------------------------------- */
 
 const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const [filter, setFilter] = useState('All');
   const [view, setView] = useState<'grid' | 'list'>('grid');
 
@@ -180,8 +182,7 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
           <div className="flex flex-col justify-between gap-12 md:flex-row md:items-end">
             <Reveal delay={0.3} className="max-w-lg">
               <p className="text-lg font-light leading-relaxed text-neutral-500 md:text-xl">
-                Deep dives into challenging design systems for visionary products — from first
-                principles through to shipped interface.
+{data.pageIntros.works}
               </p>
             </Reveal>
 
@@ -191,7 +192,7 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
                 {[
                   { value: projects.length, suffix: '', label: 'Case studies' },
                   { value: clientCount, suffix: '', label: 'Clients' },
-                  { value: 6, suffix: 'y', label: 'Practising' },
+
                 ].map((stat) => (
                   <div key={stat.label}>
                     <div className="mb-1 text-3xl font-medium tabular-nums text-neutral-900 md:text-4xl">
@@ -313,7 +314,7 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
               <Reveal delay={0.3}>
                 <Magnetic strength={0.25} className="inline-block">
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com"
+                    href={`mailto:${email}`}
                     className="inline-flex items-center gap-4 rounded-full bg-white px-9 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-900 shadow-2xl transition-colors duration-300 hover:bg-[var(--ink)] hover:text-white"
                   >
                     Start a conversation

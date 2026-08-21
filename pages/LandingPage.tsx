@@ -8,7 +8,15 @@ import {
   useSpring,
 } from 'motion/react';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
-import { PortfolioData, Project, Service, GalleryItem, SocialLink } from '../types';
+import {
+  PortfolioData,
+  Project,
+  Service,
+  GalleryItem,
+  SocialLink,
+  Discipline,
+  Contact as ContactDetails,
+} from '../types';
 import { INITIAL_DATA } from '../constants';
 import { Reveal, Stagger, StaggerItem, Marquee, Magnetic, Counter, EASE } from '../components/Motion';
 import EditorialCard from '../components/EditorialCard';
@@ -45,6 +53,7 @@ const jumpTo = (id: string) => (e: React.MouseEvent) => {
  * ================================================================== */
 
 const Hero: React.FC<{ data: PortfolioData }> = ({ data }) => {
+  const stats = data.stats ?? [];
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
@@ -143,28 +152,33 @@ const Hero: React.FC<{ data: PortfolioData }> = ({ data }) => {
         <div className="flex max-w-[200px] flex-col gap-6 sm:max-w-[300px] md:max-w-[380px] md:gap-7">
           <Reveal delay={0.7}>
             <p className="text-[13px] font-light leading-relaxed text-white/60 md:text-sm">
-              {firstName} is a product designer and digital marketer —{' '}
+              {data.heroIntro}{' '}
               <span className="text-white">
                 {company.role} at {company.name}
               </span>
-              , a creative agency doing design, branding and full-service marketing.
+              .
             </p>
           </Reveal>
 
           <Reveal delay={0.8}>
             <div className="flex items-end gap-8 border-t border-white/15 pt-5 md:gap-12">
-              <div>
-                <p className="mb-1 text-2xl font-medium tabular-nums text-white md:text-4xl">
-                  <Counter to={50} suffix="+" />
-                </p>
-                <p className="mono mono-sm text-white/45">Projects</p>
-              </div>
-              <div>
-                <p className="mb-1 text-2xl font-medium tabular-nums text-white md:text-4xl">
-                  <Counter to={6} suffix="y" />
-                </p>
-                <p className="mono mono-sm text-white/45">Practising</p>
-              </div>
+              {stats.map((stat) => (
+                <div key={stat.id}>
+                  <p className="mb-1 text-2xl font-medium tabular-nums text-white md:text-4xl">
+                    {/* Counter animates a number; a non-numeric value is shown
+                        as-is so a stat like "24/7" still renders. */}
+                    {Number.isFinite(Number(stat.value)) && stat.value.trim() !== '' ? (
+                      <Counter to={Number(stat.value)} suffix={stat.suffix} />
+                    ) : (
+                      <>
+                        {stat.value}
+                        {stat.suffix}
+                      </>
+                    )}
+                  </p>
+                  <p className="mono mono-sm text-white/45">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </Reveal>
 
@@ -198,23 +212,12 @@ const Hero: React.FC<{ data: PortfolioData }> = ({ data }) => {
  * ================================================================== */
 
 /** Alternates design and marketing terms so neither discipline dominates. */
-const TICKER_ITEMS = [
-  'Product Design',
-  'Performance Marketing',
-  'Brand Identity',
-  'SEO & Content',
-  'Design Systems',
-  'Paid Social',
-  'Motion',
-  'Go-to-market',
-];
-
-const Ticker: React.FC = () => (
+const Ticker: React.FC<{ items: string[] }> = ({ items }) => (
   <div className="overflow-hidden border-y border-[var(--hairline)] bg-[var(--paper)] py-5">
     {/* Shears with scroll momentum, so the seam feels physically connected
         to the reader's gesture. */}
     <VelocityMarquee baseSpeed={38}>
-      {TICKER_ITEMS.map((item) => (
+      {items.map((item) => (
         <span key={item} className="flex items-center whitespace-nowrap">
           <span className="mega px-8 text-3xl text-[var(--ink)] md:text-5xl">{item}</span>
           <span className="h-2 w-2 rounded-full bg-[var(--ink)]" />
@@ -228,20 +231,7 @@ const Ticker: React.FC = () => (
  * DISCIPLINES — the two halves of the practice, side by side
  * ================================================================== */
 
-const DISCIPLINES = [
-  {
-    key: 'Design',
-    blurb: 'Making the product and the brand look like they deserve the price.',
-    items: ['Product & UI/UX', 'Brand Identity', 'Design Systems', 'Motion & Animation'],
-  },
-  {
-    key: 'Marketing',
-    blurb: 'Making sure the right people actually see it, and then buy.',
-    items: ['Performance / Paid', 'SEO & Content', 'Social Strategy', 'Analytics & CRO'],
-  },
-];
-
-const Disciplines: React.FC = () => (
+const Disciplines: React.FC<{ disciplines: Discipline[] }> = ({ disciplines }) => (
   <section className="border-b border-[var(--hairline)] bg-[var(--paper)]">
     <div className="mx-auto max-w-[1600px] px-5 py-20 md:px-10 md:py-28">
       <Reveal>
@@ -249,8 +239,8 @@ const Disciplines: React.FC = () => (
       </Reveal>
 
       <div className="grid grid-cols-1 gap-px bg-[var(--hairline)] md:grid-cols-2">
-        {DISCIPLINES.map((d, idx) => (
-          <Reveal key={d.key} delay={idx * 0.12} className="bg-[var(--paper)]">
+        {disciplines.map((d, idx) => (
+          <Reveal key={d.id} delay={idx * 0.12} className="bg-[var(--paper)]">
             <div className="h-full px-0 py-8 md:px-10 md:py-4">
               <div className="mb-6 flex items-baseline gap-4">
                 <span className="mono text-[var(--grey-2)]">
@@ -546,7 +536,7 @@ const Gallery: React.FC<{ items: GalleryItem[] }> = ({ items }) => {
  * CONTACT
  * ================================================================== */
 
-const Contact: React.FC<{ social: SocialLink[] }> = ({ social }) => (
+const Contact: React.FC<{ social: SocialLink[]; contact: ContactDetails }> = ({ social, contact }) => (
   <section
     id="contact"
     className="border-t border-[var(--hairline)] bg-[var(--paper)] pb-20 pt-24 md:pt-32"
@@ -575,17 +565,20 @@ const Contact: React.FC<{ social: SocialLink[] }> = ({ social }) => (
         <Reveal>
           <p className="mono mb-4 text-[var(--grey-1)]">Email</p>
           <a
-            href="mailto:ashimkaflebiz@gmail.com"
+            href={`mailto:${contact.email}`}
             className="link-wipe break-words text-lg font-medium md:text-2xl"
           >
-            ashimkaflebiz@gmail.com
+            {contact.email}
           </a>
         </Reveal>
 
         <Reveal delay={0.1}>
           <p className="mono mb-4 text-[var(--grey-1)]">Phone / WhatsApp</p>
-          <a href="tel:+9779805812718" className="link-wipe text-xl font-medium md:text-2xl">
-            +977 9805 812 718
+          <a
+            href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`}
+            className="link-wipe text-xl font-medium md:text-2xl"
+          >
+            {contact.phone}
           </a>
         </Reveal>
 
@@ -621,7 +614,7 @@ const Contact: React.FC<{ social: SocialLink[] }> = ({ social }) => (
       <Reveal delay={0.3} className="mt-20">
         <Magnetic strength={0.25} className="inline-block">
           <a
-            href="mailto:ashimkaflebiz@gmail.com?subject=Project%20enquiry"
+            href={`mailto:${contact.email}?subject=Project%20enquiry`}
             className="group flex items-center gap-5 rounded-full bg-[var(--ink)] py-5 pl-10 pr-4 transition-colors duration-500 hover:bg-[var(--grey-1)]"
           >
             <span className="mono text-[var(--paper)]">Start a project</span>
@@ -643,16 +636,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
   const projects = Array.isArray(data?.projects) ? data.projects.filter(Boolean) : [];
   const services = Array.isArray(data?.services) ? data.services.filter(Boolean) : [];
   const gallery = Array.isArray(data?.gallery) ? data.gallery.filter(Boolean) : [];
+  const ticker = Array.isArray(data?.ticker) ? data.ticker.filter(Boolean) : [];
+  const disciplines = Array.isArray(data?.disciplines) ? data.disciplines.filter(Boolean) : [];
 
   return (
     <div className="bg-[var(--paper)]">
       <Hero data={data} />
-      <Ticker />
-      <Disciplines />
+      <Ticker items={ticker} />
+      <Disciplines disciplines={disciplines} />
       <Work projects={projects} />
       <Services services={services} />
       <Gallery items={gallery} />
-      <Contact social={data.social} />
+      <Contact social={data.social} contact={data.contact} />
     </div>
   );
 };

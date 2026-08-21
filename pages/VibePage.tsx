@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
-import { Quote, Target, Palette, Rocket, Shield, Heart } from 'lucide-react';
-import { PortfolioData } from '../types';
+import { Quote, Heart } from 'lucide-react';
+import DynamicIcon from '../components/DynamicIcon';
+import { PortfolioData, ProcessStep } from '../types';
 import {
   PageShell,
   Reveal,
@@ -18,29 +19,10 @@ interface VibePageProps {
   data: PortfolioData;
 }
 
-const PROCESS_STEPS = [
-  { title: 'Discovery', Icon: Target, desc: 'Unearthing the unique value proposition of your brand.' },
-  { title: 'Strategy', Icon: Shield, desc: 'Defining the visual roadmap and interaction paradigms.' },
-  { title: 'Refine', Icon: Palette, desc: 'Crafting pixel-perfect assets and smooth motions.' },
-  { title: 'Ship', Icon: Rocket, desc: 'Deploying high-performance digital experiences.' },
-];
-
-const TOOLBOX = [
-  'Figma',
-  'Framer',
-  'Three.js',
-  'Adobe CC',
-  'React',
-  'Motion',
-  'Design Strategy',
-  'Blender',
-  'Webflow',
-];
-
 /**
  * Vertical timeline whose accent line fills as the section scrolls past.
  */
-const ProcessTimeline: React.FC = () => {
+const ProcessTimeline: React.FC<{ steps: ProcessStep[] }> = ({ steps }) => {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -59,12 +41,12 @@ const ProcessTimeline: React.FC = () => {
       />
 
       <div className="space-y-4">
-        {PROCESS_STEPS.map((step, idx) => (
-          <Reveal key={step.title} delay={idx * 0.1} direction="right" distance={24}>
+        {steps.map((step, idx) => (
+          <Reveal key={step.id} delay={idx * 0.1} direction="right" distance={24}>
             <div className="group flex gap-8">
               <div className="relative z-10 hidden shrink-0 md:block">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.07] bg-white text-neutral-300 shadow-sm transition-all duration-500 group-hover:border-[var(--ink)] group-hover:bg-[var(--ink)] group-hover:text-white">
-                  <step.Icon size={16} />
+                  <DynamicIcon name={step.iconName} size={16} />
                 </div>
               </div>
 
@@ -78,7 +60,7 @@ const ProcessTimeline: React.FC = () => {
                   </h4>
                 </div>
                 <p className="max-w-md text-sm font-light leading-relaxed text-neutral-500">
-                  {step.desc}
+                  {step.description}
                 </p>
               </div>
             </div>
@@ -92,6 +74,8 @@ const ProcessTimeline: React.FC = () => {
 const VibePage: React.FC<VibePageProps> = ({ data }) => {
   const vibe = data?.vibe || { title: 'The Approach', description: 'Design with intent.', philosophy: [] };
   const philosophy = (vibe.philosophy || []).filter(Boolean);
+  const steps = (data?.process || []).filter(Boolean);
+  const tools = (data?.tools || []).filter(Boolean);
   const reduced = useReducedMotion();
 
   return (
@@ -224,7 +208,7 @@ const VibePage: React.FC<VibePageProps> = ({ data }) => {
             </Reveal>
           </div>
 
-          <ProcessTimeline />
+          <ProcessTimeline steps={steps} />
         </div>
       </section>
 
@@ -244,22 +228,22 @@ const VibePage: React.FC<VibePageProps> = ({ data }) => {
 
         <div className="marquee-mask space-y-4">
           <Marquee speed={34}>
-            {TOOLBOX.map((tool) => (
+            {tools.map((tool) => (
               <span
-                key={tool}
+                key={tool.id}
                 className="mx-2 whitespace-nowrap rounded-full border border-black/[0.05] bg-white px-8 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500 shadow-sm"
               >
-                {tool}
+                {tool.name}
               </span>
             ))}
           </Marquee>
           <Marquee speed={40} reverse>
-            {[...TOOLBOX].reverse().map((tool) => (
+            {[...tools].reverse().map((tool) => (
               <span
-                key={tool}
+                key={tool.id}
                 className="mx-2 whitespace-nowrap rounded-full border border-black/[0.05] bg-white px-8 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-500 shadow-sm"
               >
-                {tool}
+                {tool.name}
               </span>
             ))}
           </Marquee>

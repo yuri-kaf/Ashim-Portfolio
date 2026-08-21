@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
@@ -51,6 +52,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
   const { id } = useParams<{ id: string }>();
 
   const projects = (data?.projects || []).filter(Boolean);
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const index = projects.findIndex((p) => p.id === id);
   const project = index >= 0 ? projects[index] : undefined;
   // Wrap around so there is always somewhere to go next.
@@ -292,7 +294,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
               <Reveal delay={0.3}>
                 <Magnetic strength={0.25} className="inline-block">
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com"
+                    href={`mailto:${email}`}
                     className="inline-flex items-center gap-4 rounded-full bg-white px-9 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-900 shadow-2xl transition-colors duration-500 hover:bg-[var(--ink)] hover:text-white"
                   >
                     Get in touch

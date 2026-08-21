@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
 import { Clock, ArrowRight, X, ArrowUpRight } from 'lucide-react';
 import { PortfolioData, Blog } from '../types';
@@ -35,6 +36,7 @@ const Meta: React.FC<{ blog: Blog; light?: boolean }> = ({ blog, light }) => (
 
 const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
   const blogs = (data?.blogs || []).filter(Boolean);
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const [openId, setOpenId] = useState<string | null>(null);
   const reduced = useReducedMotion();
 
@@ -200,7 +202,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
               <Reveal delay={0.35}>
                 <Magnetic strength={0.25} className="inline-block">
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com?subject=Subscribe%20to%20the%20journal"
+                    href={`mailto:${email}?subject=Subscribe%20to%20the%20journal`}
                     className="inline-flex items-center gap-4 rounded-full bg-white px-9 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-900 shadow-2xl transition-colors duration-500 hover:bg-[var(--ink)] hover:text-white"
                   >
                     Subscribe
@@ -276,7 +278,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
                     Enjoyed this? I write when I have something worth saying.
                   </p>
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com"
+                    href={`mailto:${email}`}
                     className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
                   >
                     <span className="link-wipe">Get in touch</span>

@@ -1,10 +1,12 @@
 import React from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { Link } from 'react-router-dom';
 import { INITIAL_DATA } from '../constants';
 import { PortfolioData } from '../types';
 
 const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
   const name = data?.name || INITIAL_DATA.name;
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const company = data?.company || INITIAL_DATA.company;
   const social = data?.social?.length ? data.social : INITIAL_DATA.social;
 
@@ -86,10 +88,10 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
           <div>
             <p className="mono mb-4 text-white/40">Contact</p>
             <a
-              href="mailto:ashimkaflebiz@gmail.com"
+              href={`mailto:${email}`}
               className="mono block break-all text-white/75 hover:text-white"
             >
-              ashimkaflebiz@gmail.com
+              {email}
             </a>
           </div>
         </div>

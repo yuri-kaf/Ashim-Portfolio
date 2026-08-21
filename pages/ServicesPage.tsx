@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, Plus, Check } from 'lucide-react';
 import SafeLottie from '../components/SafeLottie';
@@ -18,15 +19,6 @@ import {
 interface ServicesPageProps {
   data: PortfolioData;
 }
-
-const SERVICE_DELIVERABLES: Record<string, string[]> = {
-  s1: ['Interactive Prototypes', 'Design Systems', 'User Research', 'Wireframing'],
-  s2: ['Logo Systems', 'Brand Guidelines', 'Visual Language', 'Typography'],
-  s3: ['Go-to-market Strategy', 'Campaign Planning', 'Social Strategy', 'Analytics & Reporting'],
-  s4: ['Meta & Google Ads', 'Creative Testing', 'Funnel Optimisation', 'Attribution'],
-  s5: ['Keyword Research', 'Technical SEO', 'Content Strategy', 'Link Acquisition'],
-  s6: ['2D/3D Sculpting', 'Character Rigging', 'Motion Graphics', 'Storyboarding'],
-};
 
 /** Rendered inside the sticky panel — a Lottie loop when present, else the still. */
 const ServiceVisual: React.FC<{ service: Service }> = ({ service }) => {
@@ -56,6 +48,7 @@ const ServiceVisual: React.FC<{ service: Service }> = ({ service }) => {
 
 const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
   const services = (data?.services || []).filter(Boolean);
+  const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const [active, setActive] = useState(0);
   const reduced = useReducedMotion();
 
@@ -111,7 +104,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
           <div>
             {services.map((service, idx) => {
               const isOpen = active === idx;
-              const deliverables = SERVICE_DELIVERABLES[service.id] || [];
+              const deliverables = service.deliverables ?? [];
 
               return (
                 <Reveal
@@ -191,7 +184,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
                           </Stagger>
 
                           <a
-                            href={`mailto:ashimkaflebiz@gmail.com?subject=${encodeURIComponent(
+                            href={`mailto:${email}?subject=${encodeURIComponent(
                               `Enquiry — ${service.title}`,
                             )}`}
                             className="group/cta inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
@@ -391,7 +384,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
               <Reveal delay={0.4} direction="left">
                 <Magnetic strength={0.3}>
                   <a
-                    href="mailto:ashimkaflebiz@gmail.com?subject=Booking%20a%20consult"
+                    href={`mailto:${email}?subject=Booking%20a%20consult`}
                     className="group inline-flex items-center gap-5 rounded-full bg-white py-4 pl-9 pr-3 shadow-2xl transition-colors duration-500 hover:bg-[var(--ink)]"
                   >
                     <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-900 transition-colors duration-500 group-hover:text-white">
