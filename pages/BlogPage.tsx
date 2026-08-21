@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
@@ -35,31 +36,13 @@ const Meta: React.FC<{ blog: Blog; light?: boolean }> = ({ blog, light }) => (
 );
 
 const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
-  const blogs = (data?.blogs || []).filter(Boolean);
+  // Drafts are reachable by direct link for previewing, never listed.
+  const blogs = (data?.blogs || []).filter(Boolean).filter((entry) => entry.published);
   const email = data?.contact?.email || DEFAULT_DATA.contact.email;
-  const [openId, setOpenId] = useState<string | null>(null);
   const reduced = useReducedMotion();
 
   const [featured, ...rest] = blogs;
-  const openBlog = blogs.find((b) => b.id === openId) || null;
 
-  // While the reader is open: dismiss on Escape and stop the page behind it scrolling.
-  useEffect(() => {
-    if (!openBlog) return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenId(null);
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [openBlog]);
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
@@ -99,10 +82,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
             </Reveal>
 
             <Reveal delay={0.1}>
-              <button
-                onClick={() => setOpenId(featured.id)}
-                className="group block w-full text-left"
-              >
+              <Link to={`/blog/${featured.slug}`} className="group block w-full text-left">
                 <div className="grid gap-0 border-t border-[var(--ink)] lg:grid-cols-2">
                   <div className="relative aspect-[16/11] overflow-hidden bg-neutral-200">
                     <Parallax offset={-20} className="absolute inset-[-10%]">
@@ -135,7 +115,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
                     </span>
                   </div>
                 </div>
-              </button>
+              </Link>
             </Reveal>
           </div>
         </section>
@@ -159,8 +139,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
               {rest.map((blog, i) => (
                 <StaggerItem key={blog.id}>
                   <EditorialCard
-                    to=""
-                    onClick={() => setOpenId(blog.id)}
+                    to={`/blog/${blog.slug}`}
                     image={blog.image}
                     title={blog.title}
                     meta={blog.readTime}
@@ -215,80 +194,6 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
         </Reveal>
       </section>
 
-      {/* ---------- Reader overlay ----------
-          Rendered directly rather than through AnimatePresence: in testing,
-          AnimatePresence's exit-completion signal proved unreliable in this
-          environment, which left the reader stuck open with no way to close
-          it. Entrance still animates on mount; closing is now immediate
-          rather than an animated dismiss. */}
-      {openBlog && (
-          <>
-            <div
-              className="fixed inset-0 z-[150] bg-neutral-900/40 backdrop-blur-sm"
-              onClick={() => setOpenId(null)}
-            />
-
-            <motion.div
-              className="fixed inset-x-0 bottom-0 z-[151] max-h-[92vh] overflow-y-auto rounded-t-[36px] bg-white"
-              initial={reduced ? { opacity: 0 } : { y: '100%' }}
-              animate={reduced ? { opacity: 1 } : { y: 0 }}
-              transition={{ duration: 0.6, ease: EASE }}
-              role="dialog"
-              aria-modal="true"
-              aria-label={openBlog.title}
-            >
-              {/* Sticky close bar */}
-              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/[0.05] bg-white/90 px-6 py-5 backdrop-blur-xl md:px-12">
-                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">
-                  Journal
-                </span>
-                <button
-                  onClick={() => setOpenId(null)}
-                  aria-label="Close article"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.06] text-neutral-500 transition-colors duration-300 hover:border-[var(--ink)] hover:bg-[var(--ink)] hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <article className="mx-auto max-w-3xl px-6 pb-24 pt-14 md:px-0">
-                <Meta blog={openBlog} />
-                <h1 className="display mb-10 mt-6 text-4xl text-neutral-900 md:text-6xl">
-                  {openBlog.title}
-                </h1>
-
-                <div className="mb-12 aspect-[16/9] overflow-hidden rounded-none bg-neutral-100">
-                  <img
-                    src={openBlog.image}
-                    alt={openBlog.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                <p className="mb-10 border-l-2 border-[var(--ink)] pl-6 text-xl font-light italic leading-relaxed text-neutral-600 md:text-2xl">
-                  {openBlog.excerpt}
-                </p>
-
-                <div className="whitespace-pre-wrap text-lg font-light leading-[1.85] text-neutral-600">
-                  {openBlog.content}
-                </div>
-
-                <div className="mt-16 border-t border-black/[0.06] pt-10">
-                  <p className="mb-6 text-sm font-light text-neutral-400">
-                    Enjoyed this? I write when I have something worth saying.
-                  </p>
-                  <a
-                    href={`mailto:${email}`}
-                    className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
-                  >
-                    <span className="link-wipe">Get in touch</span>
-                    <ArrowRight size={14} />
-                  </a>
-                </div>
-              </article>
-            </motion.div>
-          </>
-      )}
     </PageShell>
   );
 };

@@ -17,6 +17,7 @@ import ServicesPage from './pages/ServicesPage';
 import VibePage from './pages/VibePage';
 import DashboardPage from './pages/DashboardPage';
 import BlogPage from './pages/BlogPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import GalleryPage from './pages/GalleryPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -77,6 +78,7 @@ const App: React.FC = () => {
       <Route path="/services" element={<ServicesPage data={data} />} />
       <Route path="/vibe" element={<VibePage data={data} />} />
       <Route path="/blog" element={<BlogPage data={data} />} />
+      <Route path="/blog/:slug" element={<BlogDetailPage data={data} />} />
       <Route path="/gallery" element={<GalleryPage data={data} />} />
       {/* Not linked in the nav — the admin panel is being built separately. */}
       <Route path="/dashboard" element={<DashboardPage data={data} updateData={updateData} />} />
