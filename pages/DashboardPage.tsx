@@ -6,8 +6,10 @@ import { getSession, logout } from '../services/authApi';
 import { saveContent } from '../services/contentApi';
 import { sanitizePortfolioData } from '../lib/sanitize';
 import SaveBar from '../components/dashboard/SaveBar';
+import { COLLECTIONS } from '../lib/editorSchema';
 import LoginForm from './dashboard/LoginForm';
 import ProfileEditor from './dashboard/ProfileEditor';
+import CollectionEditor from './dashboard/CollectionEditor';
 
 interface DashboardPageProps {
   data: PortfolioData;
@@ -20,6 +22,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ data, updateData }) => {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [section, setSection] = useState<string>('profile');
 
   /**
    * Whether the editor has been typed in.
@@ -111,7 +114,37 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ data, updateData }) => {
           </button>
         </div>
 
-        <ProfileEditor draft={draft} patch={patch} />
+        <nav className="mb-10 flex flex-wrap gap-2">
+          {[{ key: 'profile', label: 'Profile' }, ...COLLECTIONS].map((entry) => (
+            <button
+              key={entry.key}
+              onClick={() => setSection(entry.key)}
+              className={`mono rounded-full px-5 py-2.5 transition-colors ${
+                section === entry.key
+                  ? 'bg-[var(--ink)] text-[var(--paper)]'
+                  : 'border border-[var(--hairline)] text-[var(--grey-1)] hover:border-[var(--ink)]'
+              }`}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </nav>
+
+        {section === 'profile' ? (
+          <ProfileEditor draft={draft} patch={patch} />
+        ) : (
+          (() => {
+            const spec = COLLECTIONS.find((c) => c.key === section);
+            if (!spec) return null;
+            return (
+              <CollectionEditor
+                spec={spec}
+                items={draft[spec.key] as Record<string, any>[]}
+                onChange={(items) => patch({ [spec.key]: items } as Partial<PortfolioData>)}
+              />
+            );
+          })()
+        )}
 
         <SaveBar
           dirty={dirty}
