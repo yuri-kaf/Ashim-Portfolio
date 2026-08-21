@@ -1,8 +1,17 @@
 
 import { PortfolioData } from './types.js';
 import { DIGITAL_MARKETING_LOTTIE } from './assets/lottieData.js';
+import { sanitizePortfolioData } from './lib/sanitize.js';
 
-export const INITIAL_DATA: PortfolioData = {
+/**
+ * Seed content for a fresh install, and the fallback the site renders when the
+ * content API is unreachable.
+ *
+ * Written as a partial and normalised below rather than spelled out field by
+ * field: the sanitizer fills in every field each record's type requires, so
+ * adding a field to `types.ts` does not mean editing every literal here.
+ */
+const SEED = {
   name: "Ashim Kafle",
   role: "Product Designer & Digital Marketer",
   tagline: "Design that looks sharp and marketing that makes it sell.",
@@ -78,6 +87,7 @@ export const INITIAL_DATA: PortfolioData = {
   services: [
     {
       id: "s1",
+      deliverables: ["Interactive Prototypes", "Design Systems", "User Research", "Wireframing"],
       title: "UI/UX Design",
       description: "Aesthetic digital interfaces for mobile and web platforms.",
       image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1200&auto=format&fit=crop",
@@ -85,6 +95,7 @@ export const INITIAL_DATA: PortfolioData = {
     },
     {
       id: "s2",
+      deliverables: ["Logo Systems", "Brand Guidelines", "Visual Language", "Typography"],
       title: "Brand Identity",
       description: "Iconic visual languages that define and elevate brand presence.",
       image: "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1200&auto=format&fit=crop",
@@ -92,6 +103,7 @@ export const INITIAL_DATA: PortfolioData = {
     },
     {
       id: "s3",
+      deliverables: ["Go-to-market Strategy", "Campaign Planning", "Social Strategy", "Analytics & Reporting"],
       title: "Digital Marketing",
       description: "Strategic growth campaigns maximizing global reach and ROI.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
@@ -100,6 +112,7 @@ export const INITIAL_DATA: PortfolioData = {
     },
     {
       id: "s4",
+      deliverables: ["Meta & Google Ads", "Creative Testing", "Funnel Optimisation", "Attribution"],
       title: "Performance Marketing",
       description: "Paid acquisition across Meta and Google, built to lower cost per result month over month.",
       image: "https://images.unsplash.com/photo-1518186285589-2f7649de83e0?q=80&w=1200&auto=format&fit=crop",
@@ -107,6 +120,7 @@ export const INITIAL_DATA: PortfolioData = {
     },
     {
       id: "s5",
+      deliverables: ["Keyword Research", "Technical SEO", "Content Strategy", "Link Acquisition"],
       title: "SEO & Content",
       description: "Search and content systems that compound into traffic you don't have to keep paying for.",
       image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=1200&auto=format&fit=crop",
@@ -114,6 +128,7 @@ export const INITIAL_DATA: PortfolioData = {
     },
     {
       id: "s6",
+      deliverables: ["2D/3D Sculpting", "Character Rigging", "Motion Graphics", "Storyboarding"],
       title: "Motion & Animation",
       description: "Characters and motion work that give a brand a personality people remember.",
       image: "https://images.unsplash.com/photo-1635322966219-b75ed372eb01?q=80&w=1200&auto=format&fit=crop",
@@ -121,10 +136,10 @@ export const INITIAL_DATA: PortfolioData = {
     }
   ],
   process: [
-    { id: "p1", title: "Strategy", description: "Deep dive into goals, user personas, and competitive landscape." },
-    { id: "p2", title: "Wireframe", description: "Architecting the core user flow and low-fidelity skeletons." },
-    { id: "p3", title: "Visuals", description: "Applying the crimson vibe and high-fidelity aesthetics." },
-    { id: "p4", title: "Deploy", description: "Seamless transition from design files to a live product." }
+    { id: "p1", title: "Strategy", description: "Deep dive into goals, user personas, and competitive landscape.", iconName: "Target" },
+    { id: "p2", title: "Wireframe", description: "Architecting the core user flow and low-fidelity skeletons.", iconName: "Shield" },
+    { id: "p3", title: "Visuals", description: "Applying the crimson vibe and high-fidelity aesthetics.", iconName: "Palette" },
+    { id: "p4", title: "Deploy", description: "Seamless transition from design files to a live product.", iconName: "Rocket" }
   ],
   tools: [
     { id: "t1", name: "Figma", iconName: "figma" },
@@ -176,3 +191,5 @@ export const INITIAL_DATA: PortfolioData = {
     { id: 'instagram', label: 'Instagram', url: '' },
   ],
 };
+
+export const INITIAL_DATA: PortfolioData = sanitizePortfolioData(SEED);
