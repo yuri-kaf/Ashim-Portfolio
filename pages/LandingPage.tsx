@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import Seo from '../components/Seo';
 import { Link } from 'react-router-dom';
 import {
   motion,
@@ -285,7 +286,7 @@ const Disciplines: React.FC<{ disciplines: Discipline[] }> = ({ disciplines }) =
 
 const WorkCard: React.FC<{ project: Project; idx: number }> = ({ project, idx }) => (
   <EditorialCard
-    to={`/works/${project.id}`}
+    to={`/works/${project.slug}`}
     image={project.image}
     title={project.title || 'Untitled'}
     meta={project.category}
@@ -641,6 +642,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
 
   return (
     <div className="bg-[var(--paper)]">
+      <Seo defaults={data.seo} path="/" description={data.tagline} />
       <Hero data={data} />
       <Ticker items={ticker} />
       <Disciplines disciplines={disciplines} />

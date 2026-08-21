@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import Seo from '../components/Seo';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
@@ -53,7 +54,10 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
 
   const projects = (data?.projects || []).filter(Boolean);
   const email = data?.contact?.email || DEFAULT_DATA.contact.email;
-  const index = projects.findIndex((p) => p.id === id);
+  // Slug first, id second: URLs use slugs now, but links shared before slugs
+  // existed still point at ids and must keep resolving.
+  const bySlug = projects.findIndex((p) => p.slug === id);
+  const index = bySlug >= 0 ? bySlug : projects.findIndex((p) => p.id === id);
   const project = index >= 0 ? projects[index] : undefined;
   // Wrap around so there is always somewhere to go next.
   const next = projects.length > 1 ? projects[(index + 1) % projects.length] : undefined;
@@ -61,6 +65,14 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
   if (!project) {
     return (
       <PageShell className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6">
+      <Seo
+        defaults={data.seo}
+        title={project.title}
+        description={project.subtitle || project.description}
+        image={project.image}
+        path={`/works/${project.slug}`}
+        type="article"
+      />
         <div className="text-center">
           <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">404</p>
           <h2 className="display mb-8 text-4xl text-neutral-900 md:text-6xl">Project not found.</h2>
@@ -246,7 +258,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
             </Reveal>
 
             <Reveal delay={0.1}>
-              <Link to={`/works/${next.id}`} className="group block">
+              <Link to={`/works/${next.slug}`} className="group block">
                 <div className="flex flex-col items-start gap-10 md:flex-row md:items-center">
                   <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-none bg-neutral-100 md:w-64">
                     <img

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import Seo from '../components/Seo';
 import { motion, useReducedMotion } from 'motion/react';
 import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { PortfolioData, GalleryItem } from '../types';
@@ -60,6 +61,7 @@ const GalleryPage: React.FC<GalleryPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
+      <Seo defaults={data.seo} title="Gallery" path="/gallery" description={data.pageIntros.gallery} />
       {/* ---------- Masthead ---------- */}
       <header className="px-5 pb-16 pt-36 md:px-10 md:pt-44">
         <div className="mx-auto max-w-[1600px]">

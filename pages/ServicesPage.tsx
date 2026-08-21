@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Seo from '../components/Seo';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, Plus, Check } from 'lucide-react';
@@ -56,6 +57,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
+      <Seo defaults={data.seo} title="Services" path="/services" description={data.pageIntros.services} />
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-28 pt-40">
         <div className="pointer-events-none absolute -left-40 top-20 h-[560px] w-[560px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[130px]" />

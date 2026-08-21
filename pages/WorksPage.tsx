@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Seo from '../components/Seo';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
@@ -41,7 +42,7 @@ const GridCard: React.FC<{ project: Project; idx: number }> = ({ project, idx })
     >
       <ClipReveal from={idx % 2 === 0 ? 'bottom' : 'left'}>
       <EditorialCard
-        to={`/works/${project.id}`}
+        to={`/works/${project.slug}`}
         image={project.image}
         title={project.title || 'Untitled'}
         meta={project.category}
@@ -72,7 +73,7 @@ const ListRow: React.FC<{ project: Project; idx: number }> = ({ project, idx }) 
       transition={{ duration: 0.6, delay: reduced ? 0 : idx * 0.05, ease: EASE }}
     >
       <Link
-        to={`/works/${project.id}`}
+        to={`/works/${project.slug}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className="group relative flex items-center gap-8 border-b border-black/[0.06] py-9 transition-colors duration-500 hover:border-[var(--ink)]"
@@ -163,6 +164,7 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
+      <Seo defaults={data.seo} title="Work" path="/works" description={data.pageIntros.works} />
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-40">
         <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[120px]" />
