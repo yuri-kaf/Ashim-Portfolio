@@ -1426,7 +1426,10 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      // Flash on both routes: the free Google AI Studio tier is where this
+      // key is expected to come from, and pro tiers are likeliest to fall
+      // outside it. Swap to pro if quality matters more than cost.
+      model: 'gemini-3-flash-preview',
       contents: `Refine this design case study. Title: ${title}. Initial Description: ${description}. Explain the challenge, the approach taken, and the result in a compelling way for a senior design portfolio. Return the content as a single markdown-style string.`,
     });
 
