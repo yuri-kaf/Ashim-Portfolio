@@ -1,5 +1,5 @@
-import { INITIAL_DATA } from '../constants';
-import { PortfolioData, SocialLink } from '../types';
+import { INITIAL_DATA } from '../constants.js';
+import { PortfolioData, SocialLink } from '../types.js';
 
 /** Keeps only entries that are plain objects — guards against nulls in arrays. */
 const objectsOnly = <T>(value: unknown, fallback: T[]): T[] =>

@@ -1,6 +1,6 @@
 import { head, put } from '@vercel/blob';
-import { sanitizePortfolioData } from '../../lib/sanitize';
-import { PortfolioData } from '../../types';
+import { sanitizePortfolioData } from '../../lib/sanitize.js';
+import { PortfolioData } from '../../types.js';
 
 export const CONTENT_PATH = 'content/portfolio.json';
 

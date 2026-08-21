@@ -6,7 +6,7 @@ import {
   serializeCookie,
   signToken,
   verifyToken,
-} from './session';
+} from './session.js';
 
 const SECRET = 'a'.repeat(64);
 

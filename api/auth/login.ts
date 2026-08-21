@@ -1,6 +1,6 @@
-import { error, json, readJson } from '../_lib/http';
-import { verifyPassword } from '../_lib/password';
-import { SESSION_TTL_SECONDS, serializeCookie, signToken } from '../_lib/session';
+import { error, json, readJson } from '../_lib/http.js';
+import { verifyPassword } from '../_lib/password.js';
+import { SESSION_TTL_SECONDS, serializeCookie, signToken } from '../_lib/session.js';
 
 /** Delay applied to every failure, to blunt trivial online guessing. */
 const FAILURE_DELAY_MS = 400;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { INITIAL_DATA } from '../constants';
-import { sanitizePortfolioData } from './sanitize';
+import { INITIAL_DATA } from '../constants.js';
+import { sanitizePortfolioData } from './sanitize.js';
 
 describe('sanitizePortfolioData', () => {
   it('returns defaults for null', () => {

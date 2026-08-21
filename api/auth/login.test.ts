@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { hashPassword } from '../_lib/password';
-import { COOKIE_NAME } from '../_lib/session';
+import { hashPassword } from '../_lib/password.js';
+import { COOKIE_NAME } from '../_lib/session.js';
 
 const SECRET = 'd'.repeat(64);
 const PASSWORD = 'a-sufficiently-long-password';
@@ -20,7 +20,7 @@ describe('/api/auth/login', () => {
   });
 
   it('sets a session cookie for the correct password', async () => {
-    const { POST } = await import('./login');
+    const { POST } = await import('./login.js');
     const response = await POST(post({ password: PASSWORD }));
 
     expect(response.status).toBe(200);
@@ -30,7 +30,7 @@ describe('/api/auth/login', () => {
   });
 
   it('rejects the wrong password without setting a cookie', async () => {
-    const { POST } = await import('./login');
+    const { POST } = await import('./login.js');
     const response = await POST(post({ password: 'wrong' }));
 
     expect(response.status).toBe(401);
@@ -38,13 +38,13 @@ describe('/api/auth/login', () => {
   });
 
   it('rejects a missing password', async () => {
-    const { POST } = await import('./login');
+    const { POST } = await import('./login.js');
     expect((await POST(post({}))).status).toBe(400);
   });
 
   it('returns 500 when the server is not configured', async () => {
     delete process.env.ADMIN_PASSWORD_HASH;
-    const { POST } = await import('./login');
+    const { POST } = await import('./login.js');
     expect((await POST(post({ password: PASSWORD }))).status).toBe(500);
   });
 });

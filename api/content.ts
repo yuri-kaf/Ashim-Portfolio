@@ -1,8 +1,8 @@
-import { INITIAL_DATA } from '../constants';
-import { sanitizePortfolioData } from '../lib/sanitize';
-import { readContent, writeContent } from './_lib/blob';
-import { error, json, readJson } from './_lib/http';
-import { isAuthenticated } from './_lib/session';
+import { INITIAL_DATA } from '../constants.js';
+import { sanitizePortfolioData } from '../lib/sanitize.js';
+import { readContent, writeContent } from './_lib/blob.js';
+import { error, json, readJson } from './_lib/http.js';
+import { isAuthenticated } from './_lib/session.js';
 
 /**
  * Public read.

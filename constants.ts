@@ -1,6 +1,6 @@
 
-import { PortfolioData } from './types';
-import { DIGITAL_MARKETING_LOTTIE } from './assets/lottieData';
+import { PortfolioData } from './types.js';
+import { DIGITAL_MARKETING_LOTTIE } from './assets/lottieData.js';
 
 export const INITIAL_DATA: PortfolioData = {
   name: "Ashim Kafle",

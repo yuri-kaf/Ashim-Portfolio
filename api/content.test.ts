@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { INITIAL_DATA } from '../constants';
-import { COOKIE_NAME, signToken } from './_lib/session';
+import { INITIAL_DATA } from '../constants.js';
+import { COOKIE_NAME, signToken } from './_lib/session.js';
 
 const readContent = vi.fn();
 const writeContent = vi.fn();
 
-vi.mock('./_lib/blob', () => ({
+vi.mock('./_lib/blob.js', () => ({
   CONTENT_PATH: 'content/portfolio.json',
   readContent: () => readContent(),
   writeContent: (data: unknown) => writeContent(data),
@@ -32,7 +32,7 @@ describe('/api/content', () => {
 
   it('GET returns the stored document', async () => {
     readContent.mockResolvedValue({ ...INITIAL_DATA, name: 'Stored Name' });
-    const { GET } = await import('./content');
+    const { GET } = await import('./content.js');
 
     const response = await GET();
     expect(response.status).toBe(200);
@@ -41,7 +41,7 @@ describe('/api/content', () => {
 
   it('GET falls back to defaults when nothing is stored', async () => {
     readContent.mockResolvedValue(null);
-    const { GET } = await import('./content');
+    const { GET } = await import('./content.js');
 
     const response = await GET();
     expect(response.status).toBe(200);
@@ -50,14 +50,14 @@ describe('/api/content', () => {
 
   it('GET sets a CDN cache header', async () => {
     readContent.mockResolvedValue(null);
-    const { GET } = await import('./content');
+    const { GET } = await import('./content.js');
 
     const response = await GET();
     expect(response.headers.get('cache-control')).toContain('s-maxage=30');
   });
 
   it('PUT rejects an unauthenticated request and does not write', async () => {
-    const { PUT } = await import('./content');
+    const { PUT } = await import('./content.js');
 
     const response = await PUT(
       new Request('https://example.com/api/content', {
@@ -70,7 +70,7 @@ describe('/api/content', () => {
   });
 
   it('PUT rejects a malformed body', async () => {
-    const { PUT } = await import('./content');
+    const { PUT } = await import('./content.js');
 
     const response = await PUT(
       new Request('https://example.com/api/content', {
@@ -85,7 +85,7 @@ describe('/api/content', () => {
 
   it('PUT sanitizes before writing', async () => {
     writeContent.mockResolvedValue(undefined);
-    const { PUT } = await import('./content');
+    const { PUT } = await import('./content.js');
 
     const response = await PUT(
       authedRequest({ ...INITIAL_DATA, name: 'New', projects: [null, { id: '1' }] }),
@@ -99,7 +99,7 @@ describe('/api/content', () => {
 
   it('PUT reports a storage failure as a 500', async () => {
     writeContent.mockRejectedValue(new Error('blob unavailable'));
-    const { PUT } = await import('./content');
+    const { PUT } = await import('./content.js');
 
     const response = await PUT(authedRequest(INITIAL_DATA));
     expect(response.status).toBe(500);
