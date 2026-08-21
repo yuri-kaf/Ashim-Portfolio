@@ -17,6 +17,7 @@ import VibePage from './pages/VibePage';
 import DashboardPage from './pages/DashboardPage';
 import BlogPage from './pages/BlogPage';
 import GalleryPage from './pages/GalleryPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 
 const App: React.FC = () => {
@@ -80,6 +81,7 @@ const App: React.FC = () => {
       <Route path="/gallery" element={<GalleryPage data={data} />} />
       {/* Not linked in the nav — the admin panel is being built separately. */}
       <Route path="/dashboard" element={<DashboardPage data={data} updateData={updateData} />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 
