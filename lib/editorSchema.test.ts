@@ -5,7 +5,17 @@ import { COLLECTIONS } from './editorSchema.js';
 describe('collection specs', () => {
   it('covers every editable collection', () => {
     expect(COLLECTIONS.map((c) => c.key).sort()).toEqual(
-      ['blogs', 'gallery', 'process', 'projects', 'services', 'social', 'tools'].sort(),
+      [
+        'blogs',
+        'disciplines',
+        'gallery',
+        'process',
+        'projects',
+        'services',
+        'social',
+        'stats',
+        'tools',
+      ].sort(),
     );
   });
 

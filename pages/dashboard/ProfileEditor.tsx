@@ -1,6 +1,9 @@
 import React from 'react';
 import { PortfolioData } from '../../types';
 import Field from '../../components/dashboard/Field';
+import ImageField from '../../components/dashboard/ImageField';
+import ListField from '../../components/dashboard/ListField';
+import SearchPreview from '../../components/dashboard/SearchPreview';
 
 const AVAILABILITY = ['available', 'busy', 'vacation'] as const;
 
@@ -94,6 +97,130 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ draft, patch }) => (
               },
             })
           }
+        />
+      </div>
+    </section>
+
+    <section>
+      <p className="mono bracket mb-4 text-[var(--grey-1)]">Hero</p>
+      <Field
+        label="Intro paragraph"
+        kind="textarea"
+        rows={3}
+        help="Sits under the hero headline. The company credential is appended automatically."
+        value={draft.heroIntro}
+        onChange={(heroIntro) => patch({ heroIntro })}
+      />
+    </section>
+
+    <section>
+      <p className="mono bracket mb-4 text-[var(--grey-1)]">Contact</p>
+      <div className="grid gap-6 md:grid-cols-3">
+        <Field
+          label="Email"
+          value={draft.contact.email}
+          help="Used by every contact link on the site."
+          onChange={(email) => patch({ contact: { ...draft.contact, email } })}
+        />
+        <Field
+          label="Phone"
+          value={draft.contact.phone}
+          onChange={(phone) => patch({ contact: { ...draft.contact, phone } })}
+        />
+        <Field
+          label="Location"
+          value={draft.contact.location}
+          onChange={(location) => patch({ contact: { ...draft.contact, location } })}
+        />
+      </div>
+    </section>
+
+    <section>
+      <p className="mono bracket mb-4 text-[var(--grey-1)]">Marquee</p>
+      <ListField
+        label="Scrolling phrases"
+        help="One per line. Shown in the band under the hero."
+        value={draft.ticker}
+        onChange={(ticker) => patch({ ticker })}
+      />
+    </section>
+
+    <section>
+      <p className="mono bracket mb-4 text-[var(--grey-1)]">Page intros</p>
+      <div className="grid gap-6">
+        {(
+          [
+            ['works', 'Work page'],
+            ['services', 'Services page'],
+            ['gallery', 'Gallery page'],
+            ['blog', 'Journal page'],
+            ['vibe', 'Vibe page'],
+          ] as const
+        ).map(([key, label]) => (
+          <Field
+            key={key}
+            label={label}
+            kind="textarea"
+            rows={2}
+            value={draft.pageIntros[key]}
+            onChange={(text) => patch({ pageIntros: { ...draft.pageIntros, [key]: text } })}
+          />
+        ))}
+      </div>
+    </section>
+
+    <section>
+      <p className="mono bracket mb-4 text-[var(--grey-1)]">Search &amp; sharing defaults</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Field
+          label="Site name"
+          value={draft.seo.siteName}
+          onChange={(siteName) => patch({ seo: { ...draft.seo, siteName } })}
+        />
+        <Field
+          label="Title suffix"
+          value={draft.seo.titleSuffix}
+          help='Appended to every page title, e.g. " | Ashim Kafle".'
+          onChange={(titleSuffix) => patch({ seo: { ...draft.seo, titleSuffix } })}
+        />
+        <Field
+          label="Site URL"
+          value={draft.seo.siteUrl}
+          help="Used to build canonical links and the sitemap. Include https://."
+          onChange={(siteUrl) => patch({ seo: { ...draft.seo, siteUrl } })}
+        />
+        <Field
+          label="Twitter handle"
+          value={draft.seo.twitterHandle}
+          help="Optional, including the @."
+          onChange={(twitterHandle) => patch({ seo: { ...draft.seo, twitterHandle } })}
+        />
+        <div className="md:col-span-2">
+          <Field
+            label="Default description"
+            kind="textarea"
+            rows={2}
+            recommendedMax={160}
+            help="Used for any page without its own description."
+            value={draft.seo.description}
+            onChange={(description) => patch({ seo: { ...draft.seo, description } })}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <ImageField
+            label="Default share image"
+            value={draft.seo.ogImage}
+            onChange={(ogImage) => patch({ seo: { ...draft.seo, ogImage } })}
+          />
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <SearchPreview
+          siteUrl={draft.seo.siteUrl}
+          path="/"
+          title={draft.seo.siteName}
+          description={draft.seo.description}
         />
       </div>
     </section>

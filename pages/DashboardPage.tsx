@@ -139,6 +139,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ data, updateData }) => {
             return (
               <CollectionEditor
                 spec={spec}
+                seo={draft.seo}
                 items={draft[spec.key] as Record<string, any>[]}
                 onChange={(items) => patch({ [spec.key]: items } as Partial<PortfolioData>)}
               />
