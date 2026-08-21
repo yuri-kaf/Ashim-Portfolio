@@ -8,6 +8,7 @@ import { Cursor, PageCurtain, HoverSwap } from './components/MotionExtras';
 import SmoothScroll, { smoothScrollTo } from './components/SmoothScroll';
 import { useNavTheme } from './components/useNavTheme';
 import { INITIAL_DATA } from './constants';
+import { sanitizePortfolioData } from './lib/sanitize';
 import { PortfolioData } from './types';
 import LandingPage from './pages/LandingPage';
 import WorksPage from './pages/WorksPage';
@@ -284,67 +285,13 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
   );
 };
 
-/**
- * Deep sanitization to ensure data strictly adheres to the schema.
- * Prevents crashes caused by null/undefined arrays.
- */
-const performNuclearSanitize = (dirtyData: any): PortfolioData => {
-  const base = { ...INITIAL_DATA };
-  
-  // If data is null or not an object, return fresh defaults
-  if (!dirtyData || typeof dirtyData !== 'object' || Array.isArray(dirtyData)) {
-    return base;
-  }
-
-  // Sanitize each potential array property individually
-  const safeProjects = Array.isArray(dirtyData.projects) ? dirtyData.projects.filter((p: any) => p && typeof p === 'object') : base.projects;
-  const safeServices = Array.isArray(dirtyData.services) ? dirtyData.services.filter((s: any) => s && typeof s === 'object') : base.services;
-  const safeBlogs = Array.isArray(dirtyData.blogs) ? dirtyData.blogs.filter((b: any) => b && typeof b === 'object') : base.blogs;
-  const safeProcess = Array.isArray(dirtyData.process) ? dirtyData.process.filter((p: any) => p && typeof p === 'object') : base.process;
-  const safeTools = Array.isArray(dirtyData.tools) ? dirtyData.tools.filter((t: any) => t && typeof t === 'object') : base.tools;
-  const safeGallery = Array.isArray(dirtyData.gallery) ? dirtyData.gallery.filter((g: any) => g && typeof g === 'object') : base.gallery;
-
-  const dirtyCompany = dirtyData.company || {};
-  const safeCompany = {
-    name: typeof dirtyCompany.name === 'string' ? dirtyCompany.name : base.company.name,
-    role: typeof dirtyCompany.role === 'string' ? dirtyCompany.role : base.company.role,
-    description:
-      typeof dirtyCompany.description === 'string'
-        ? dirtyCompany.description
-        : base.company.description,
-    url: typeof dirtyCompany.url === 'string' ? dirtyCompany.url : base.company.url,
-  };
-
-  const dirtyVibe = dirtyData.vibe || {};
-  const safeVibe = {
-    title: typeof dirtyVibe.title === 'string' ? dirtyVibe.title : base.vibe.title,
-    description: typeof dirtyVibe.description === 'string' ? dirtyVibe.description : base.vibe.description,
-    philosophy: Array.isArray(dirtyVibe.philosophy) ? dirtyVibe.philosophy.filter((p: any) => typeof p === 'string') : base.vibe.philosophy,
-  };
-
-  return {
-    name: typeof dirtyData.name === 'string' ? dirtyData.name : base.name,
-    role: typeof dirtyData.role === 'string' ? dirtyData.role : base.role,
-    tagline: typeof dirtyData.tagline === 'string' ? dirtyData.tagline : base.tagline,
-    company: safeCompany,
-    availability: ['available', 'busy', 'vacation'].includes(dirtyData.availability) ? dirtyData.availability : base.availability,
-    projects: safeProjects,
-    services: safeServices,
-    blogs: safeBlogs,
-    process: safeProcess,
-    tools: safeTools,
-    gallery: safeGallery,
-    vibe: safeVibe
-  };
-};
-
 const App: React.FC = () => {
   const [data, setData] = useState<PortfolioData>(() => {
     try {
       const saved = localStorage.getItem('portfolio_data');
       if (saved && saved !== "null" && saved !== "undefined") {
         const parsed = JSON.parse(saved);
-        return performNuclearSanitize(parsed);
+        return sanitizePortfolioData(parsed);
       }
     } catch (e) {
       console.error("Critical error during data hydration:", e);
@@ -355,7 +302,7 @@ const App: React.FC = () => {
   const location = useLocation();
 
   const updateData = useCallback((newData: PortfolioData) => {
-    const sanitized = performNuclearSanitize(newData);
+    const sanitized = sanitizePortfolioData(newData);
     setData(sanitized);
   }, []);
 

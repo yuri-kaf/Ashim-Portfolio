@@ -57,6 +57,17 @@ export interface Company {
   url?: string;
 }
 
+/**
+ * A social profile link. An entry with an empty `url` renders as an inert
+ * label rather than a dead link — the hardcoded "#" placeholders used to do
+ * this, and `#` is no longer safe now that the app uses real paths.
+ */
+export interface SocialLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface PortfolioData {
   name: string;
   role: string;
@@ -69,6 +80,7 @@ export interface PortfolioData {
   process: ProcessStep[];
   tools: Tool[];
   gallery: GalleryItem[];
+  social: SocialLink[];
   vibe: {
     title: string;
     description: string;

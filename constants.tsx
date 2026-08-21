@@ -165,5 +165,14 @@ export const INITIAL_DATA: PortfolioData = {
       readTime: "4 min",
       image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800&auto=format&fit=crop"
     }
-  ]
+  ],
+  social: [
+    {
+      id: 'linkedin',
+      label: 'LinkedIn',
+      url: 'https://www.linkedin.com/in/ashim-kafle-676a312a5/',
+    },
+    { id: 'dribbble', label: 'Dribbble', url: '' },
+    { id: 'instagram', label: 'Instagram', url: '' },
+  ],
 };
