@@ -6,6 +6,7 @@ import { Cursor, PageCurtain } from './components/MotionExtras';
 import SmoothScroll, { smoothScrollTo } from './components/SmoothScroll';
 import { INITIAL_DATA } from './constants';
 import { sanitizePortfolioData } from './lib/sanitize';
+import { fetchContent } from './services/contentApi';
 import { PortfolioData } from './types';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -21,18 +22,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 
 const App: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(() => {
-    try {
-      const saved = localStorage.getItem('portfolio_data');
-      if (saved && saved !== "null" && saved !== "undefined") {
-        const parsed = JSON.parse(saved);
-        return sanitizePortfolioData(parsed);
-      }
-    } catch (e) {
-      console.error("Critical error during data hydration:", e);
-    }
-    return INITIAL_DATA;
-  });
+  const [data, setData] = useState<PortfolioData>(INITIAL_DATA);
 
   const location = useLocation();
 
@@ -41,12 +31,21 @@ const App: React.FC = () => {
     setData(sanitized);
   }, []);
 
+  // Published content is the source of truth. INITIAL_DATA renders immediately
+  // and stays if the request fails, so the site is never blank.
+  //
+  // Deliberately not cached in localStorage: a stored copy used to make
+  // constants.tsx edits look like no-ops until the key was cleared, and with a
+  // real backend the same cache would hide published changes from visitors.
   useEffect(() => {
-    // Only save if data is valid
-    if (data && typeof data === 'object') {
-      localStorage.setItem('portfolio_data', JSON.stringify(data));
-    }
-  }, [data]);
+    let cancelled = false;
+    fetchContent().then((published) => {
+      if (!cancelled && published) setData(published);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const observerOptions = { threshold: 0.1 };

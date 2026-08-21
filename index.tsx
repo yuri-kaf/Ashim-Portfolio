@@ -16,7 +16,23 @@ const redirectLegacyHashUrl = () => {
   }
 };
 
+/**
+ * Content used to be cached under this key, and a stale copy shadowing the
+ * bundled defaults is what made constants.tsx edits look like no-ops. Nothing
+ * reads it any more — the API is the source of truth — so clear it out of
+ * returning visitors' browsers rather than leaving it to confuse a future
+ * debugging session.
+ */
+const dropLegacyContentCache = () => {
+  try {
+    localStorage.removeItem('portfolio_data');
+  } catch {
+    // Private-mode or blocked storage: nothing to clean up.
+  }
+};
+
 redirectLegacyHashUrl();
+dropLegacyContentCache();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
