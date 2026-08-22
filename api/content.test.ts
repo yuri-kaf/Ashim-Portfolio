@@ -104,4 +104,21 @@ describe('/api/content', () => {
     const response = await PUT(authedRequest(INITIAL_DATA));
     expect(response.status).toBe(500);
   });
+
+  it('PUT names a storage misconfiguration so it can be acted on', async () => {
+    // These are the two failures actually hit in production. A generic message
+    // sends the owner to the logs; naming them points at the fix.
+    writeContent.mockRejectedValue(new Error('Vercel Blob: This store does not exist.'));
+    const { PUT } = await import('./content.js');
+
+    const missing = await PUT(authedRequest(INITIAL_DATA));
+    expect(missing.status).toBe(500);
+    expect((await missing.json()).error).toMatch(/no longer exists/i);
+
+    writeContent.mockRejectedValue(
+      new Error('Vercel Blob: Cannot use public access on a private store.'),
+    );
+    const privateStore = await PUT(authedRequest(INITIAL_DATA));
+    expect((await privateStore.json()).error).toMatch(/private/i);
+  });
 });
