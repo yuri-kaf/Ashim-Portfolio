@@ -56,9 +56,9 @@ const ProcessTimeline: React.FC<{ steps: ProcessStep[] }> = ({ steps }) => {
                   <span className="text-[11px] font-bold tabular-nums text-[var(--grey-1)]">
                     {String(idx + 1).padStart(2, '0')}
                   </span>
-                  <h4 className="text-2xl font-medium tracking-tight text-neutral-900">
+                  <h3 className="text-2xl font-medium tracking-tight text-neutral-900">
                     {step.title}
-                  </h4>
+                  </h3>
                 </div>
                 <p className="max-w-md text-sm font-light leading-relaxed text-neutral-500">
                   {step.description}

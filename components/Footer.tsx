@@ -8,7 +8,11 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
   const name = data?.name || INITIAL_DATA.name;
   const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const company = data?.company || INITIAL_DATA.company;
+  const companyUrl = company.url?.trim() || DEFAULT_DATA.company.url || '';
   const social = data?.social?.length ? data.social : INITIAL_DATA.social;
+  const ownedServices = (data?.services || []).filter(
+    (s) => s && s.mode === 'page' && s.published,
+  );
 
   return (
     <footer data-nav-theme="dark" className="bg-[#0a0a0a] px-5 pb-10 pt-20 md:px-10">
@@ -27,7 +31,7 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 py-12 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 py-12 md:grid-cols-5">
           <div>
             <p className="mono mb-4 text-white/40">Navigate</p>
             <div className="flex flex-col gap-2">
@@ -35,6 +39,8 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
                 { n: 'Work', p: '/works' },
                 { n: 'Services', p: '/services' },
                 { n: 'Gallery', p: '/gallery' },
+                { n: 'About', p: '/about' },
+                { n: 'Contact', p: '/contact' },
               ].map((l) => (
                 <Link key={l.p} to={l.p} className="mono text-white/75 hover:text-white">
                   {l.n}
@@ -42,6 +48,23 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
               ))}
             </div>
           </div>
+
+          {ownedServices.length > 0 && (
+            <div>
+              <p className="mono mb-4 text-white/40">Services</p>
+              <div className="flex flex-col gap-2">
+                {ownedServices.map((s) => (
+                  <Link
+                    key={s.id}
+                    to={`/services/${s.slug}`}
+                    className="mono text-white/75 hover:text-white"
+                  >
+                    {s.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <p className="mono mb-4 text-white/40">More</p>
@@ -100,8 +123,20 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
         <div className="border-t border-white/10 py-8">
           <p className="mono mb-3 text-white/40">Currently</p>
           <p className="max-w-2xl text-lg font-light leading-relaxed text-white/80 md:text-xl">
-            {company.role} at <span className="font-medium text-white">{company.name}</span> — a
-            creative agency delivering design, branding and full-service marketing.
+            {company.role} at{' '}
+            {companyUrl ? (
+              <a
+                href={companyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-wipe font-medium text-white"
+              >
+                {company.name}
+              </a>
+            ) : (
+              <span className="font-medium text-white">{company.name}</span>
+            )}{' '}
+            — the agency I co-founded, delivering design, branding and full-service marketing.
           </p>
         </div>
 

@@ -176,8 +176,8 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
 
           <SplitText
             as="h1"
-            text="Selected cases."
-            accent={['cases.']}
+            text="Design & Marketing Work from Nepal."
+            accent={['Nepal.']}
             className="display mb-12 text-[3.5rem] text-neutral-900 md:text-[8.5rem]"
           />
 

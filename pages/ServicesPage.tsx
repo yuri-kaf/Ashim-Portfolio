@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, Plus, Check } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Plus, Check } from 'lucide-react';
 import SafeLottie from '../components/SafeLottie';
 import { PortfolioData, Service } from '../types';
 import {
@@ -69,8 +70,8 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
 
           <SplitText
             as="h1"
-            text="Crafting the unforgettable."
-            accent={['unforgettable.']}
+            text="Design Services in Nepal."
+            accent={['Nepal.']}
             className="display mb-14 max-w-5xl text-[3.25rem] text-neutral-900 md:text-[7.5rem]"
           />
 
@@ -128,13 +129,13 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
                       {String(idx + 1).padStart(2, '0')}
                     </span>
 
-                    <h3
+                    <h2
                       className={`flex-1 text-3xl font-medium tracking-tight transition-colors duration-500 md:text-5xl ${
                         isOpen ? 'text-[var(--grey-1)]' : 'text-neutral-900 group-hover:text-neutral-500'
                       }`}
                     >
                       {service.title}
-                    </h3>
+                    </h2>
 
                     <motion.span
                       animate={{ rotate: isOpen ? 45 : 0 }}
@@ -185,18 +186,46 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
                             ))}
                           </Stagger>
 
-                          <a
-                            href={`mailto:${email}?subject=${encodeURIComponent(
-                              `Enquiry — ${service.title}`,
-                            )}`}
-                            className="group/cta inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
-                          >
-                            <span className="link-wipe">Enquire about this service</span>
-                            <ArrowRight
-                              size={14}
-                              className="transition-transform duration-300 group-hover/cta:translate-x-1"
-                            />
-                          </a>
+                          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+                            {service.mode === 'page' ? (
+                              <Link
+                                to={`/services/${service.slug}`}
+                                className="group/cta inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
+                              >
+                                <span className="link-wipe">View full service page</span>
+                                <ArrowRight
+                                  size={14}
+                                  className="transition-transform duration-300 group-hover/cta:translate-x-1"
+                                />
+                              </Link>
+                            ) : (
+                              <a
+                                href={service.externalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group/cta inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
+                              >
+                                <span className="link-wipe">via Limi Creatives ↗</span>
+                                <ArrowUpRight
+                                  size={14}
+                                  className="transition-transform duration-300 group-hover/cta:translate-x-1"
+                                />
+                              </a>
+                            )}
+
+                            <a
+                              href={`mailto:${email}?subject=${encodeURIComponent(
+                                `Enquiry — ${service.title}`,
+                              )}`}
+                              className="group/cta inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--grey-1)]"
+                            >
+                              <span className="link-wipe">Enquire about this service</span>
+                              <ArrowRight
+                                size={14}
+                                className="transition-transform duration-300 group-hover/cta:translate-x-1"
+                              />
+                            </a>
+                          </div>
                         </div>
                       </motion.div>
                   )}
@@ -255,9 +284,9 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
                     <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--grey-1)]">
                       {activeService ? `Service 0${active + 1}` : 'Overview'}
                     </p>
-                    <h4 className="text-xl font-medium tracking-tight text-neutral-900">
+                    <h3 className="text-xl font-medium tracking-tight text-neutral-900">
                       {activeService?.title ?? 'Full service suite'}
-                    </h4>
+                    </h3>
                   </motion.div>
                 </div>
               </div>
