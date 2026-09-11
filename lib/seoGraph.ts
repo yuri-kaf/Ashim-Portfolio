@@ -115,7 +115,13 @@ export const buildGraph = ({
       url,
       datePublished: article.published || undefined,
       author: { '@id': PERSON_ID },
-      publisher: { '@id': LIMI_ORG_ID },
+      // Deliberately NOT the agency. This is the person's own domain; naming
+      // Limi Creatives as the publisher would tell Google the agency publishes
+      // this site's content, which contradicts the two-site boundary and hands
+      // the agency entity the credit for the person's portfolio. The founder
+      // relationship lives on Person.worksFor / Organization.founder, and
+      // nowhere else.
+      publisher: { '@id': PERSON_ID },
       keywords: article.tags?.length ? article.tags.join(', ') : undefined,
     });
   }

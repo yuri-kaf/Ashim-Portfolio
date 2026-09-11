@@ -61,14 +61,17 @@ describe('buildGraph', () => {
       .not.toContain('FAQPage');
   });
 
-  it('credits the person as author and the agency as publisher on posts', () => {
+  it('never names the agency as the publisher of this domain', () => {
+    // This is the person's site. Publishing credit belongs to the person; the
+    // founder relationship is carried by worksFor/founder and nothing else.
     const graph = buildGraph({
       ...base, path: '/blog/x', title: 'X',
       article: { headline: 'X', published: '2026-01-01' },
     });
     const post = nodeOf(graph, 'BlogPosting');
     expect(post.author).toEqual({ '@id': PERSON_ID });
-    expect(post.publisher).toEqual({ '@id': LIMI_ORG_ID });
+    expect(post.publisher).toEqual({ '@id': PERSON_ID });
+    expect(post.publisher).not.toEqual({ '@id': LIMI_ORG_ID });
   });
 
   it('never names one page two different ways in the same graph', () => {
