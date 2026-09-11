@@ -300,7 +300,9 @@ Tell me the length, the format and where it will run, and I will quote it. [Star
       id: "s3",
       mode: "pointer",
       externalUrl: "https://limicreatives.com/services/content-creation",
-      deliverables: ["Go-to-market Strategy", "Campaign Planning", "Social Strategy", "Analytics & Reporting"],
+      // Taken from limicreatives.com/services/content-creation, so the card
+      // describes what the agency actually produces.
+      deliverables: ["Reels & TikTok Video", "Graphic Ad-Creatives", "Conversion Content", "Brand Building Content"],
       title: "Content Creation",
       description: "Content and social programmes, planned and produced by the team at Limi Creatives.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
