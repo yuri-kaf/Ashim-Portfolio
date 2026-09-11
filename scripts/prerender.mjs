@@ -316,7 +316,12 @@ const run = async () => {
     {
       path: '/contact',
       title: `Contact ${data.name}`,
-      description: `Hire a web designer and digital marketer in ${city}. Call ${contact.phone} or email ${contact.email} — ${data.name}, ${contact.location}.`,
+      // No email address here. A meta description is served to every crawler
+      // and scraper that touches the page, which makes it the easiest possible
+      // harvest. The phone stays — a local business number in the description
+      // is normal and useful — and the visible mailto: link below is still the
+      // way a human gets in touch.
+      description: `Hire a web designer and digital marketer in ${city}. Call ${contact.phone} — ${data.name}, ${contact.location}.`,
       // NAP as plain visible text: that is what a local search crawler reads
       // and what a human copies.
       body: `<h1>Hire a web designer in ${escapeHtml(city)}.</h1>${para(
