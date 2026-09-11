@@ -20,16 +20,26 @@ interface CollectionEditorProps {
   onChange: (items: Item[]) => void;
 }
 
-/** "value | label" lines <-> [{id, value, label}] for the `pairs` kind. */
-const pairsToText = (pairs: Array<{ value?: string; label?: string }> = []) =>
-  pairs.map((pair) => `${pair.value ?? ''} | ${pair.label ?? ''}`);
+/**
+ * "first | second" lines <-> [{id, ...}] for the `pairs` kind.
+ *
+ * Which two keys sit either side of the bar comes from the field spec, so the
+ * same editor serves {value, label} results and {question, answer} FAQs.
+ */
+const DEFAULT_PAIR_KEYS: [string, string] = ['value', 'label'];
 
-const textToPairs = (lines: string[]) =>
+const pairsToText = (pairs: Array<Record<string, unknown>>, keys: [string, string]) =>
+  pairs.map((pair) => `${String(pair[keys[0]] ?? '')} | ${String(pair[keys[1]] ?? '')}`);
+
+const textToPairs = (lines: string[], keys: [string, string], idPrefix: string) =>
   lines
     .filter((line) => line.trim().length > 0)
     .map((line, index) => {
-      const [value = '', label = ''] = line.split('|');
-      return { id: `result-${index + 1}`, value: value.trim(), label: label.trim() };
+      // Split on the first bar only, so an answer may contain one.
+      const bar = line.indexOf('|');
+      const first = bar === -1 ? line : line.slice(0, bar);
+      const second = bar === -1 ? '' : line.slice(bar + 1);
+      return { id: `${idPrefix}-${index + 1}`, [keys[0]]: first.trim(), [keys[1]]: second.trim() };
     });
 
 const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, onChange }) => {
@@ -128,16 +138,18 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
             onChange={(value) => setField(index, item, field, value)}
           />
         );
-      case 'pairs':
+      case 'pairs': {
+        const keys = field.pairKeys ?? DEFAULT_PAIR_KEYS;
         return (
           <ListField
             key={field.key}
             label={field.label}
             help={field.help}
-            value={pairsToText(Array.isArray(raw) ? raw : [])}
-            onChange={(lines) => setField(index, item, field, textToPairs(lines))}
+            value={pairsToText(Array.isArray(raw) ? raw : [], keys)}
+            onChange={(lines) => setField(index, item, field, textToPairs(lines, keys, field.key))}
           />
         );
+      }
       case 'toggle':
         return (
           <ToggleField
@@ -168,7 +180,11 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
     if (!spec.slugField) return null;
     const slug = String(item[spec.slugField] ?? '') || slugify(String(item[spec.titleField] ?? ''));
     if (!slug) return null;
-    return spec.key === 'blogs' ? `/blog/${slug}` : `/works/${slug}`;
+    if (spec.key === 'blogs') return `/blog/${slug}`;
+    if (spec.key === 'blogCategories') return `/blog/category/${slug}`;
+    // A pointer service has no page here; its link belongs to Limi Creatives.
+    if (spec.key === 'services') return item.mode === 'pointer' ? null : `/services/${slug}`;
+    return `/works/${slug}`;
   };
 
   return (

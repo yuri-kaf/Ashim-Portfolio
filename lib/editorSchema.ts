@@ -6,7 +6,7 @@ export type FieldKind =
   | 'list'
   | 'images'
   | 'toggle'
-  /** A list of {value, label} objects, edited as "value | label" lines. */
+  /** A list of two-string objects, edited as "first | second" lines. */
   | 'pairs';
 
 export interface FieldSpec {
@@ -14,6 +14,11 @@ export interface FieldSpec {
   label: string;
   kind?: FieldKind;
   rows?: number;
+  /**
+   * For `pairs`: the two object keys either side of the "|". Defaults to
+   * {value, label} — FAQs, for instance, override it to {question, answer}.
+   */
+  pairKeys?: [string, string];
   /** Shown under the input — used for SEO guidance and format hints. */
   help?: string;
   /** Soft character budget; the editor shows a counter and warns past it. */
@@ -24,7 +29,17 @@ export interface FieldSpec {
 
 export interface CollectionSpec {
   /** Key on PortfolioData holding the array. */
-  key: 'projects' | 'services' | 'blogs' | 'gallery' | 'tools' | 'process' | 'social' | 'stats' | 'disciplines';
+  key:
+    | 'projects'
+    | 'services'
+    | 'blogs'
+    | 'blogCategories'
+    | 'gallery'
+    | 'tools'
+    | 'process'
+    | 'social'
+    | 'stats'
+    | 'disciplines';
   label: string;
   /** Field shown as the row heading in the collapsed list. */
   titleField: string;
@@ -75,13 +90,26 @@ export const COLLECTIONS: CollectionSpec[] = [
     key: 'services',
     label: 'Services',
     titleField: 'title',
+    slugField: 'slug',
+    publishedField: 'published',
     fields: [
       { key: 'title', label: 'Title' },
+      { key: 'slug', label: 'URL slug', help: 'Becomes /services/<slug>. Changing it breaks existing links.' },
+      { key: 'mode', label: 'Mode', help: '"page" builds a page here. "pointer" links out to Limi Creatives instead — use it for any service limicreatives.com already has a page for.' },
+      { key: 'externalUrl', label: 'Points to', help: 'Required when mode is "pointer".' },
       { key: 'icon', label: 'Icon name', help: 'A lucide icon name, e.g. "Palette".' },
       { key: 'startingAt', label: 'Starting price', help: 'Optional anchor, e.g. "from $2,000".' },
       { key: 'image', label: 'Image', kind: 'image' },
       { key: 'description', label: 'Description', kind: 'textarea', rows: 3 },
       { key: 'deliverables', label: 'Deliverables', kind: 'list', help: 'One per line. Shown on the services page.' },
+      { key: 'body', label: 'Page body', kind: 'markdown', rows: 18, group: 'Content',
+        help: 'Aim for 600+ words. This is what actually ranks.' },
+      { key: 'seoTitle', label: 'SEO title', recommendedMax: 60, group: 'SEO',
+        help: 'Include the service and the location, e.g. "Web Design & UI/UX in Nepal".' },
+      { key: 'metaDescription', label: 'Meta description', kind: 'textarea', recommendedMax: 160, group: 'SEO' },
+      { key: 'faqs', label: 'FAQs', kind: 'pairs', rows: 8, group: 'SEO', pairKeys: ['question', 'answer'],
+        help: 'One per line as "question | answer". Emitted as FAQPage schema.' },
+      { key: 'published', label: 'Published', kind: 'toggle' },
     ],
   },
   {
@@ -107,6 +135,19 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: 'seoTitle', label: 'SEO title', group: 'Search', recommendedMax: 60, help: 'Overrides the browser tab and search result title. Falls back to the post title.' },
       { key: 'metaDescription', label: 'Meta description', kind: 'textarea', rows: 3, group: 'Search', recommendedMax: 160, help: 'The grey text under your link in search results. Falls back to the excerpt.' },
       { key: 'ogImage', label: 'Social share image', kind: 'image', group: 'Search', help: 'Shown when the link is shared. Falls back to the cover image.' },
+    ],
+  },
+  {
+    key: 'blogCategories',
+    label: 'Journal categories',
+    titleField: 'title',
+    slugField: 'slug',
+    fields: [
+      { key: 'title', label: 'Title', help: 'e.g. "The Nepal Market".' },
+      { key: 'slug', label: 'URL slug', help: 'Appears as /blog/category/your-slug. Leave blank to generate from the title.' },
+      { key: 'description', label: 'Description', kind: 'textarea', rows: 3, recommendedMax: 200, help: 'Intro paragraph on the category page. Used as the meta description when none is set.' },
+      { key: 'seoTitle', label: 'SEO title', recommendedMax: 60, group: 'Search' },
+      { key: 'metaDescription', label: 'Meta description', kind: 'textarea', rows: 3, recommendedMax: 160, group: 'Search' },
     ],
   },
   {
