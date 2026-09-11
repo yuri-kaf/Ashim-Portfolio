@@ -50,6 +50,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ data }) => {
         defaults={data.seo}
         data={data}
         title={`Contact ${name}`}
+        breadcrumbTitle="Contact"
         // No email address in the description — see scripts/prerender.mjs.
         // The visible mailto: link below is how a human gets in touch.
         description={`Hire a web designer and digital marketer in ${city}. Call ${phone} — ${name}, ${location}.`}

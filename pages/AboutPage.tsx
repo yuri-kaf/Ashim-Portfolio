@@ -48,6 +48,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ data }) => {
         defaults={data.seo}
         data={data}
         exactTitle={aboutTitle(data)}
+        breadcrumbTitle="About"
         description={`${heroIntro} ${company.role} at ${company.name}, based in ${location}.`}
         path="/about"
       />

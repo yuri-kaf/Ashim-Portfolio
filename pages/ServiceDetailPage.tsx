@@ -42,6 +42,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ data }) => {
         defaults={data.seo}
         data={data}
         title={service.seoTitle?.trim() || service.title}
+        breadcrumbTitle={service.title}
         description={service.metaDescription?.trim() || service.description}
         image={service.image}
         path={`/services/${service.slug}`}

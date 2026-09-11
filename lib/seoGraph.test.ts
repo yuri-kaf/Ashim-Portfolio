@@ -98,6 +98,26 @@ describe('buildGraph', () => {
     expect(nodeOf(graph, 'CreativeWork')).not.toHaveProperty('datePublished');
   });
 
+  it('breadcrumbs the visible label, not the SEO title', () => {
+    // The page is titled "Web Design & UI/UX in Nepal"; the trail on the page
+    // reads "Web Design & UI/UX". Google expects the markup to match the trail.
+    const graph = buildGraph({
+      ...base,
+      path: '/services/web-design',
+      title: 'Web Design & UI/UX in Nepal',
+      breadcrumbTitle: 'Web Design & UI/UX',
+    });
+    const crumbs = nodeOf(graph, 'BreadcrumbList').itemListElement;
+    expect(crumbs.map((crumb: Node) => crumb.name))
+      .toEqual(['Home', 'Services', 'Web Design & UI/UX']);
+  });
+
+  it('falls back to the title when no breadcrumb label is given', () => {
+    const graph = buildGraph({ ...base, path: '/services/branding', title: 'Branding' });
+    const crumbs = nodeOf(graph, 'BreadcrumbList').itemListElement;
+    expect(crumbs[crumbs.length - 1].name).toBe('Branding');
+  });
+
   it('never names one page two different ways in the same graph', () => {
     // A trailing slash used to reach the self-URL raw while the breadcrumb
     // was canonicalised, so one graph disagreed with itself.

@@ -165,7 +165,8 @@ const run = async () => {
   const buildDate = new Date().toISOString().slice(0, 10);
 
   const buildTags = ({
-    title, exactTitle, description, image, path, type, schemaType, published, author, tags, faqs, service,
+    title, exactTitle, breadcrumbTitle, description, image, path, type, schemaType,
+    published, author, tags, faqs, service,
   }) => {
     // composeTitle is lib/titles.ts — the same helper components/Seo.tsx uses,
     // so the baked <title> and the one React writes on mount cannot disagree.
@@ -179,6 +180,9 @@ const run = async () => {
       data,
       path,
       title: title || exactTitle || seo.siteName,
+      // The visible trail's label, which is not the SEO title — see
+      // GraphInput.breadcrumbTitle in lib/seoGraph.ts.
+      breadcrumbTitle,
       description: desc,
       faqs,
       service,
@@ -302,6 +306,7 @@ const run = async () => {
       // of the page this restructure exists to rank for that name. The founder
       // claim earns the space instead.
       exactTitle: aboutTitle(data),
+      breadcrumbTitle: 'About',
       description: `${data.name} — ${company.role} at ${company.name}. ${data.role} in ${contact.location}.`,
       body: `<h1>${escapeHtml(data.name)}${data.role ? ` — ${escapeHtml(data.role)}` : ''}${
         city ? ` in ${escapeHtml(city)}` : ''
@@ -316,6 +321,7 @@ const run = async () => {
     {
       path: '/contact',
       title: `Contact ${data.name}`,
+      breadcrumbTitle: 'Contact',
       // No email address here. A meta description is served to every crawler
       // and scraper that touches the page, which makes it the easiest possible
       // harvest. The phone stays — a local business number in the description
@@ -406,6 +412,9 @@ const run = async () => {
     const faqs = service.faqs ?? [];
     await writeRoute(path, {
       title: heading,
+      // pages/ServiceDetailPage.tsx passes service.title to <Breadcrumbs>; the
+      // markup has to say the same thing the trail on the page says.
+      breadcrumbTitle: service.title,
       description: service.metaDescription?.trim() || service.description,
       image: service.image,
       type: 'website',
@@ -431,6 +440,7 @@ const run = async () => {
       : undefined;
     await writeRoute(path, {
       title: project.title,
+      breadcrumbTitle: project.title,
       description: project.subtitle || project.description,
       image: project.image,
       type: 'article',
@@ -448,6 +458,7 @@ const run = async () => {
     const path = `/blog/${post.slug}`;
     await writeRoute(path, {
       title: post.seoTitle?.trim() || post.title,
+      breadcrumbTitle: post.title,
       description: post.metaDescription?.trim() || post.excerpt,
       image: post.ogImage || post.image,
       type: 'article',
@@ -471,6 +482,7 @@ const run = async () => {
     const inCategory = posts.filter((post) => post.categoryId === category.id);
     await writeRoute(path, {
       title: category.seoTitle?.trim() || category.title,
+      breadcrumbTitle: category.title,
       description: category.metaDescription?.trim() || category.description,
       type: 'website',
       body: `<h1>${escapeHtml(category.title)}</h1>${para(category.description)}${linkList(

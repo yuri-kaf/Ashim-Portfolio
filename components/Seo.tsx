@@ -15,6 +15,12 @@ export interface SeoProps {
    * carry the name — see lib/titles.ts.
    */
   exactTitle?: string;
+  /**
+   * Label for this page's last breadcrumb crumb — pass the same string given
+   * to <Breadcrumbs>. Defaults to `title`, which is often the SEO title and
+   * therefore wrong for a trail.
+   */
+  breadcrumbTitle?: string;
   description?: string;
   /** Absolute or root-relative image for social previews. */
   image?: string;
@@ -88,6 +94,7 @@ const Seo: React.FC<SeoProps> = ({
   data,
   title,
   exactTitle,
+  breadcrumbTitle,
   description,
   image,
   path,
@@ -134,6 +141,7 @@ const Seo: React.FC<SeoProps> = ({
       data,
       path,
       title: title || exactTitle || defaults.siteName,
+      breadcrumbTitle,
       description: desc,
       faqs,
       service,
@@ -142,7 +150,7 @@ const Seo: React.FC<SeoProps> = ({
     // article, faqs and service are intentionally omitted here in favour of
     // the primitive keys derived above — see the comment where they're built.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [defaults, data, path, title, exactTitle, desc, type, schemaType, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
+    [defaults, data, path, title, exactTitle, breadcrumbTitle, desc, type, schemaType, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
   );
 
   useEffect(() => {

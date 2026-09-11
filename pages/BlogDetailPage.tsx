@@ -41,6 +41,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
         defaults={data.seo}
         data={data}
         title={post.seoTitle?.trim() || post.title}
+        breadcrumbTitle={post.title}
         description={post.metaDescription?.trim() || post.excerpt}
         image={post.ogImage?.trim() || post.image}
         path={`/blog/${post.slug}`}

@@ -21,6 +21,16 @@ export interface GraphInput {
   data: PortfolioData;
   path: string;
   title: string;
+  /**
+   * Label for this page's last breadcrumb crumb. Defaults to `title`.
+   *
+   * These legitimately differ: /services/web-design is titled "Web Design &
+   * UI/UX in Nepal" for the SERP but its visible trail reads "Web Design &
+   * UI/UX", and /about is titled with the founder claim but breadcrumbs as
+   * "About". Google expects the markup to reflect the trail on the page, so
+   * the short human label is what belongs here — never the SEO title.
+   */
+  breadcrumbTitle?: string;
   description?: string;
   faqs?: Faq[];
   /**
@@ -52,7 +62,7 @@ export interface GraphInput {
  * local businesses at one number degrades local trust signals for both.
  */
 export const buildGraph = ({
-  seo, data, path, title, description, faqs, article, service,
+  seo, data, path, title, breadcrumbTitle, description, faqs, article, service,
 }: GraphInput) => {
   const origin = seo.siteUrl.replace(/\/$/, '');
   // Canonicalised so this page's self-URL cannot disagree with the URL the
@@ -95,7 +105,7 @@ export const buildGraph = ({
     },
   ];
 
-  const trail = breadcrumbTrail(path, title);
+  const trail = breadcrumbTrail(path, breadcrumbTitle?.trim() || title);
   if (trail.length > 1) {
     nodes.push({
       '@type': 'BreadcrumbList',

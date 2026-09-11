@@ -43,6 +43,7 @@ const BlogCategoryPage: React.FC<BlogCategoryPageProps> = ({ data }) => {
         defaults={data.seo}
         data={data}
         title={category.seoTitle?.trim() || category.title}
+        breadcrumbTitle={category.title}
         description={category.metaDescription?.trim() || category.description}
         path={`/blog/category/${category.slug}`}
       />
