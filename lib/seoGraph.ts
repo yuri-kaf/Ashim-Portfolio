@@ -23,8 +23,21 @@ export interface GraphInput {
   title: string;
   description?: string;
   faqs?: Faq[];
-  /** Set for blog posts and case studies. */
-  article?: { headline: string; image?: string; published?: string; tags?: string[] };
+  /**
+   * Set for blog posts and case studies.
+   *
+   * `type` decides which they are. A portfolio case study is not a blog post:
+   * BlogPosting asserts membership in a Blog that does not exist on this
+   * domain, so projects emit CreativeWork instead — and are credited with
+   * `creator`, which is what CreativeWork takes, rather than `author`.
+   */
+  article?: {
+    headline: string;
+    type?: 'BlogPosting' | 'CreativeWork';
+    image?: string;
+    published?: string;
+    tags?: string[];
+  };
   /** Set for /services/:slug. */
   service?: { name: string; description: string };
 }
@@ -107,21 +120,27 @@ export const buildGraph = ({
   }
 
   if (article) {
+    const isPost = (article.type ?? 'BlogPosting') === 'BlogPosting';
     nodes.push({
-      '@type': 'BlogPosting',
+      '@type': isPost ? 'BlogPosting' : 'CreativeWork',
       headline: article.headline,
       description: desc,
       image: absolute(origin, article.image || seo.ogImage),
       url,
+      // Omitted rather than invented when the source carries no date.
       datePublished: article.published || undefined,
-      author: { '@id': PERSON_ID },
-      // Deliberately NOT the agency. This is the person's own domain; naming
-      // Limi Creatives as the publisher would tell Google the agency publishes
-      // this site's content, which contradicts the two-site boundary and hands
-      // the agency entity the credit for the person's portfolio. The founder
-      // relationship lives on Person.worksFor / Organization.founder, and
-      // nowhere else.
-      publisher: { '@id': PERSON_ID },
+      ...(isPost
+        ? {
+            author: { '@id': PERSON_ID },
+            // Deliberately NOT the agency. This is the person's own domain;
+            // naming Limi Creatives as the publisher would tell Google the
+            // agency publishes this site's content, which contradicts the
+            // two-site boundary and hands the agency entity the credit for the
+            // person's portfolio. The founder relationship lives on
+            // Person.worksFor / Organization.founder, and nowhere else.
+            publisher: { '@id': PERSON_ID },
+          }
+        : { creator: { '@id': PERSON_ID } }),
       keywords: article.tags?.length ? article.tags.join(', ') : undefined,
     });
   }

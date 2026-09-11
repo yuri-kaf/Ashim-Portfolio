@@ -74,6 +74,30 @@ describe('buildGraph', () => {
     expect(post.publisher).not.toEqual({ '@id': LIMI_ORG_ID });
   });
 
+  it('emits a case study as a CreativeWork, credited with creator', () => {
+    // A portfolio piece is not a blog post: BlogPosting asserts membership in
+    // a Blog this domain does not have.
+    const graph = buildGraph({
+      ...base, path: '/works/vortex-crypto', title: 'Vortex Crypto',
+      article: { headline: 'Vortex Crypto', type: 'CreativeWork', published: '2024-01-01' },
+    });
+    expect(typesOf(graph)).toContain('CreativeWork');
+    expect(typesOf(graph)).not.toContain('BlogPosting');
+    const work = nodeOf(graph, 'CreativeWork');
+    expect(work.creator).toEqual({ '@id': PERSON_ID });
+    expect(work.author).toBeUndefined();
+    expect(work.publisher).toBeUndefined();
+    expect(work.datePublished).toBe('2024-01-01');
+  });
+
+  it('omits datePublished rather than inventing one', () => {
+    const graph = buildGraph({
+      ...base, path: '/works/x', title: 'X',
+      article: { headline: 'X', type: 'CreativeWork' },
+    });
+    expect(nodeOf(graph, 'CreativeWork')).not.toHaveProperty('datePublished');
+  });
+
   it('never names one page two different ways in the same graph', () => {
     // A trailing slash used to reach the self-URL raw while the breadcrumb
     // was canonicalised, so one graph disagreed with itself.

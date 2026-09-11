@@ -73,6 +73,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
         image={project.image}
         path={`/works/${project.slug}`}
         type="article"
+        schemaType="CreativeWork"
       />
         <div className="text-center">
           <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">404</p>

@@ -45,6 +45,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
         image={post.ogImage?.trim() || post.image}
         path={`/blog/${post.slug}`}
         type="article"
+        schemaType="BlogPosting"
         publishedTime={post.date}
         tags={post.tags}
         noindex={isDraft}

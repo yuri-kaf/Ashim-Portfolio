@@ -21,6 +21,12 @@ export interface SeoProps {
   /** Path only, e.g. "/blog/my-post". Combined with the configured site URL. */
   path: string;
   type?: 'website' | 'article';
+  /**
+   * schema.org type for `type: 'article'` pages. Case studies are CreativeWork
+   * (credited with `creator`); blog posts are BlogPosting. og:type stays
+   * "article" either way — that is Open Graph's vocabulary, not schema.org's.
+   */
+  schemaType?: 'BlogPosting' | 'CreativeWork';
   publishedTime?: string;
   tags?: string[];
   /** Set on a page that should emit FAQPage schema. */
@@ -86,6 +92,7 @@ const Seo: React.FC<SeoProps> = ({
   image,
   path,
   type = 'website',
+  schemaType,
   publishedTime,
   tags,
   faqs,
@@ -112,7 +119,13 @@ const Seo: React.FC<SeoProps> = ({
   const serviceKey = service ? JSON.stringify(service) : '';
 
   const article = type === 'article'
-    ? { headline: title || exactTitle || defaults.siteName, image: ogImage, published: publishedTime, tags }
+    ? {
+        headline: title || exactTitle || defaults.siteName,
+        type: schemaType,
+        image: ogImage,
+        published: publishedTime,
+        tags,
+      }
     : undefined;
 
   const graph = useMemo(
@@ -129,7 +142,7 @@ const Seo: React.FC<SeoProps> = ({
     // article, faqs and service are intentionally omitted here in favour of
     // the primitive keys derived above — see the comment where they're built.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [defaults, data, path, title, exactTitle, desc, type, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
+    [defaults, data, path, title, exactTitle, desc, type, schemaType, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
   );
 
   useEffect(() => {

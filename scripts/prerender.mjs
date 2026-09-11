@@ -165,7 +165,7 @@ const run = async () => {
   const buildDate = new Date().toISOString().slice(0, 10);
 
   const buildTags = ({
-    title, exactTitle, description, image, path, type, published, author, tags, faqs, service,
+    title, exactTitle, description, image, path, type, schemaType, published, author, tags, faqs, service,
   }) => {
     // composeTitle is lib/titles.ts — the same helper components/Seo.tsx uses,
     // so the baked <title> and the one React writes on mount cannot disagree.
@@ -184,7 +184,13 @@ const run = async () => {
       service,
       article:
         type === 'article'
-          ? { headline: title || exactTitle || seo.siteName, image: ogImage, published, tags }
+          ? {
+              headline: title || exactTitle || seo.siteName,
+              type: schemaType,
+              image: ogImage,
+              published,
+              tags,
+            }
           : undefined,
     });
 
@@ -409,11 +415,22 @@ const run = async () => {
 
   for (const project of projects) {
     const path = `/works/${project.slug}`;
+    // A case study is a CreativeWork, not a BlogPosting. og:type stays
+    // "article" — that is Open Graph's vocabulary for any long-form page and
+    // has nothing to do with schema.org.
+    // `year` is the only date a project carries. January 1st of it is a
+    // deliberate approximation; with no year the property is omitted rather
+    // than guessed.
+    const published = /^\d{4}$/.test(String(project.year ?? '').trim())
+      ? `${String(project.year).trim()}-01-01`
+      : undefined;
     await writeRoute(path, {
       title: project.title,
       description: project.subtitle || project.description,
       image: project.image,
       type: 'article',
+      schemaType: 'CreativeWork',
+      published,
       body: `<article><h1>${escapeHtml(project.title)}</h1>${para(
         project.subtitle || project.description,
       )}${markdownToHtml(project.caseStudy)}</article>`,
@@ -429,6 +446,7 @@ const run = async () => {
       description: post.metaDescription?.trim() || post.excerpt,
       image: post.ogImage || post.image,
       type: 'article',
+      schemaType: 'BlogPosting',
       published: post.date,
       author: post.author || data.name,
       tags: post.tags,
