@@ -156,3 +156,69 @@ describe('publishedBlogs', () => {
     expect(publishedBlogs(data).map((b) => b.title)).toEqual(['Live']);
   });
 });
+
+describe('sanitize — local SEO fields', () => {
+  it('derives a service slug from the title when one is missing', () => {
+    const data = sanitizePortfolioData({
+      services: [{ id: 's1', title: 'Web Design' }],
+    } as never);
+    expect(data.services[0].slug).toBe('web-design');
+  });
+
+  it('defaults a service to a published page', () => {
+    const data = sanitizePortfolioData({
+      services: [{ id: 's1', title: 'Branding' }],
+    } as never);
+    expect(data.services[0].mode).toBe('page');
+    expect(data.services[0].published).toBe(true);
+    expect(data.services[0].faqs).toEqual([]);
+  });
+
+  it('keeps a pointer service pointing outward', () => {
+    const data = sanitizePortfolioData({
+      services: [{ id: 's1', title: 'SEO', mode: 'pointer', externalUrl: 'https://limicreatives.com/services/seo' }],
+    } as never);
+    expect(data.services[0].mode).toBe('pointer');
+    expect(data.services[0].externalUrl).toBe('https://limicreatives.com/services/seo');
+  });
+
+  it('demotes a pointer with no destination back to a page', () => {
+    const data = sanitizePortfolioData({
+      services: [{ id: 's1', title: 'SEO', mode: 'pointer', externalUrl: '' }],
+    } as never);
+    // A pointer with nowhere to point would render a dead card, so it falls
+    // back to the mode that at least produces something.
+    expect(data.services[0].mode).toBe('page');
+  });
+
+  it('drops half-filled faqs', () => {
+    const data = sanitizePortfolioData({
+      services: [{
+        id: 's1', title: 'Branding',
+        faqs: [
+          { id: 'f1', question: 'How long does a rebrand take?', answer: 'Four to six weeks.' },
+          { id: 'f2', question: '', answer: 'Orphaned answer.' },
+        ],
+      }],
+    } as never);
+    expect(data.services[0].faqs).toHaveLength(1);
+    expect(data.services[0].faqs[0].question).toBe('How long does a rebrand take?');
+  });
+
+  it('defaults the geo block to Kathmandu', () => {
+    const data = sanitizePortfolioData({} as never);
+    expect(data.seo.geo.city).toBe('Kathmandu');
+    expect(data.seo.geo.country).toBe('NP');
+    expect(data.seo.geo.areaServed).toContain('Nepal');
+  });
+
+  it('knows where Limi Creatives lives', () => {
+    const data = sanitizePortfolioData({} as never);
+    expect(data.company.url).toBe('https://limicreatives.com');
+  });
+
+  it('falls back to an empty category list', () => {
+    const data = sanitizePortfolioData({} as never);
+    expect(data.blogCategories).toEqual([]);
+  });
+});

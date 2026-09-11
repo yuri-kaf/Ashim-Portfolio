@@ -1,9 +1,11 @@
 import { DEFAULT_DATA } from './defaults.js';
 import {
   Blog,
+  BlogCategory,
   Contact,
   Discipline,
   GalleryItem,
+  Geo,
   PageIntros,
   PortfolioData,
   ProcessStep,
@@ -91,16 +93,40 @@ const project = (item: Dirty): Project => {
   };
 };
 
-const service = (item: Dirty): Service => ({
-  id: id(item.id, 'service'),
-  title: str(item.title),
-  description: str(item.description),
-  image: str(item.image),
-  icon: str(item.icon),
-  deliverables: strings(item.deliverables),
-  startingAt: str(item.startingAt),
-  ...(item.lottieData ? { lottieData: item.lottieData } : {}),
-});
+const service = (item: Dirty): Service => {
+  const serviceId = id(item.id, 'service');
+  const title = str(item.title);
+  return {
+    id: serviceId,
+    slug: resolveSlug(str(item.slug), title, serviceId),
+    externalUrl: str(item.externalUrl),
+    // A pointer with nowhere to point would render a dead card, so it falls
+    // back to being a normal page.
+    mode: item.mode === 'pointer' && str(item.externalUrl) ? 'pointer' : 'page',
+    title,
+    description: str(item.description),
+    image: str(item.image),
+    icon: str(item.icon),
+    deliverables: strings(item.deliverables),
+    startingAt: str(item.startingAt),
+    ...(item.lottieData ? { lottieData: item.lottieData } : {}),
+    body: str(item.body),
+    seoTitle: str(item.seoTitle),
+    metaDescription: str(item.metaDescription),
+    faqs: objects(item.faqs)
+      .map((entry, index) => ({
+        id: str(entry.id) || `faq-${index}`,
+        question: str(entry.question),
+        answer: str(entry.answer),
+      }))
+      // A half-filled pair emits a Question with no acceptedAnswer, which is
+      // invalid FAQPage schema. Drop it rather than ship it.
+      .filter((faq) => faq.question && faq.answer),
+    // Absent means published: services written before this field existed
+    // were already live, and silently unpublishing them would be a regression.
+    published: bool(item.published, true),
+  };
+};
 
 const blog = (item: Dirty): Blog => {
   const blogId = id(item.id, 'post');
@@ -122,6 +148,20 @@ const blog = (item: Dirty): Blog => {
     seoTitle: str(item.seoTitle),
     metaDescription: str(item.metaDescription),
     ogImage: str(item.ogImage),
+    categoryId: str(item.categoryId),
+  };
+};
+
+const blogCategory = (item: Dirty): BlogCategory => {
+  const categoryId = id(item.id, 'category');
+  const title = str(item.title);
+  return {
+    id: categoryId,
+    slug: resolveSlug(str(item.slug), title, categoryId),
+    title,
+    description: str(item.description),
+    seoTitle: str(item.seoTitle),
+    metaDescription: str(item.metaDescription),
   };
 };
 
@@ -186,6 +226,17 @@ const pageIntros = (value: unknown): PageIntros => {
   };
 };
 
+const geo = (value: unknown): Geo => {
+  const dirty = (value && typeof value === 'object' ? value : {}) as Dirty;
+  const base = DEFAULT_DATA.seo.geo;
+  return {
+    city: str(dirty.city, base.city),
+    region: str(dirty.region, base.region),
+    country: str(dirty.country, base.country),
+    areaServed: Array.isArray(dirty.areaServed) ? strings(dirty.areaServed) : base.areaServed,
+  };
+};
+
 const seo = (value: unknown): SeoDefaults => {
   const dirty = (value && typeof value === 'object' ? value : {}) as Dirty;
   const base = DEFAULT_DATA.seo;
@@ -196,6 +247,7 @@ const seo = (value: unknown): SeoDefaults => {
     ogImage: str(dirty.ogImage, base.ogImage),
     twitterHandle: str(dirty.twitterHandle, base.twitterHandle),
     siteUrl: str(dirty.siteUrl, base.siteUrl),
+    geo: geo(dirty.geo),
   };
 };
 
@@ -246,6 +298,7 @@ export const sanitizePortfolioData = (input: unknown): PortfolioData => {
     projects: list<Project>(dirty.projects, project, base.projects),
     services: list<Service>(dirty.services, service, base.services),
     blogs: list<Blog>(dirty.blogs, blog, base.blogs),
+    blogCategories: list<BlogCategory>(dirty.blogCategories, blogCategory, base.blogCategories),
     process: list<ProcessStep>(dirty.process, processStep, base.process),
     tools: list<Tool>(dirty.tools, tool, base.tools),
     gallery: list<GalleryItem>(dirty.gallery, galleryItem, base.gallery),

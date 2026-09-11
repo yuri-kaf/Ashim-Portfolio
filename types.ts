@@ -37,8 +37,28 @@ export interface Project {
   featured: boolean;
 }
 
+/** A question/answer pair, emitted as FAQPage schema on service pages. */
+export interface Faq {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+/**
+ * Whether a service gets its own page here, or defers to Limi Creatives.
+ *
+ * 'pointer' exists so this site never builds a page competing with a live
+ * limicreatives.com service page for the same query.
+ */
+export type ServiceMode = 'page' | 'pointer';
+
 export interface Service {
   id: string;
+  /** URL segment for /services/:slug. Unused when mode is 'pointer'. */
+  slug: string;
+  mode: ServiceMode;
+  /** Destination for a 'pointer' service, e.g. a limicreatives.com page. */
+  externalUrl: string;
   title: string;
   description: string;
   image: string;
@@ -48,6 +68,15 @@ export interface Service {
   /** Optional price anchor, e.g. "from $2,000". */
   startingAt: string;
   lottieData?: any; // Added to support animations
+  /** Long-form Markdown body — this is what makes the page rankable. */
+  body: string;
+  /** Overrides the <title> tag; falls back to `title`. */
+  seoTitle: string;
+  /** Overrides the meta description; falls back to `description`. */
+  metaDescription: string;
+  faqs: Faq[];
+  /** Only published services get a page and a sitemap entry. */
+  published: boolean;
 }
 
 export interface Blog {
@@ -71,6 +100,19 @@ export interface Blog {
   metaDescription: string;
   /** Overrides the social preview image; falls back to `image`. */
   ogImage: string;
+  /** Links the post to a BlogCategory. Empty means uncategorised. */
+  categoryId: string;
+}
+
+/** A topic cluster head — one indexable page per category at /blog/category/:slug. */
+export interface BlogCategory {
+  id: string;
+  slug: string;
+  title: string;
+  /** Intro paragraph; doubles as the meta description fallback. */
+  description: string;
+  seoTitle: string;
+  metaDescription: string;
 }
 
 export interface ProcessStep {
@@ -141,6 +183,16 @@ export interface PageIntros {
   vibe: string;
 }
 
+/** Where the practice operates, for local search relevance. */
+export interface Geo {
+  city: string;
+  region: string;
+  /** ISO 3166-1 alpha-2, e.g. "NP". */
+  country: string;
+  /** Places served, e.g. ["Kathmandu", "Lalitpur", "Nepal"]. */
+  areaServed: string[];
+}
+
 /** Site-wide metadata defaults; per-page values override these. */
 export interface SeoDefaults {
   siteName: string;
@@ -150,6 +202,7 @@ export interface SeoDefaults {
   twitterHandle: string;
   /** Absolute origin, used to build canonical URLs and the sitemap. */
   siteUrl: string;
+  geo: Geo;
 }
 
 export interface PortfolioData {
@@ -170,6 +223,7 @@ export interface PortfolioData {
   projects: Project[];
   services: Service[];
   blogs: Blog[];
+  blogCategories: BlogCategory[];
   process: ProcessStep[];
   tools: Tool[];
   gallery: GalleryItem[];
