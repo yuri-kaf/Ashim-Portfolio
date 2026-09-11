@@ -2,13 +2,19 @@ import { useEffect, useMemo } from 'react';
 import { Faq, PortfolioData, SeoDefaults } from '../types';
 import { buildGraph, absolute } from '../lib/seoGraph';
 import { canonicalPath } from '../lib/routes';
+import { composeTitle } from '../lib/titles';
 
 export interface SeoProps {
   defaults: SeoDefaults;
   /** Feeds lib/seoGraph.ts — the Person, the breadcrumb trail, and more. */
   data: PortfolioData;
-  /** Page title without the site suffix. Omit for the home page. */
+  /** Page title without the site suffix. */
   title?: string;
+  /**
+   * A complete title, emitted verbatim with no suffix. For titles that already
+   * carry the name — see lib/titles.ts.
+   */
+  exactTitle?: string;
   description?: string;
   /** Absolute or root-relative image for social previews. */
   image?: string;
@@ -75,6 +81,7 @@ const Seo: React.FC<SeoProps> = ({
   defaults,
   data,
   title,
+  exactTitle,
   description,
   image,
   path,
@@ -85,7 +92,7 @@ const Seo: React.FC<SeoProps> = ({
   service,
   noindex = false,
 }) => {
-  const fullTitle = title ? `${title}${defaults.titleSuffix}` : defaults.siteName;
+  const fullTitle = composeTitle(defaults, title, exactTitle);
   const desc = description?.trim() || defaults.description;
   // Canonicalised to match the URL lib/seoGraph.ts puts in the graph. A
   // canonical tag and an og:url that disagree with the schema about the same
@@ -105,7 +112,7 @@ const Seo: React.FC<SeoProps> = ({
   const serviceKey = service ? JSON.stringify(service) : '';
 
   const article = type === 'article'
-    ? { headline: title || defaults.siteName, image: ogImage, published: publishedTime, tags }
+    ? { headline: title || exactTitle || defaults.siteName, image: ogImage, published: publishedTime, tags }
     : undefined;
 
   const graph = useMemo(
@@ -113,7 +120,7 @@ const Seo: React.FC<SeoProps> = ({
       seo: defaults,
       data,
       path,
-      title: title || defaults.siteName,
+      title: title || exactTitle || defaults.siteName,
       description: desc,
       faqs,
       service,
@@ -122,7 +129,7 @@ const Seo: React.FC<SeoProps> = ({
     // article, faqs and service are intentionally omitted here in favour of
     // the primitive keys derived above — see the comment where they're built.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [defaults, data, path, title, desc, type, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
+    [defaults, data, path, title, exactTitle, desc, type, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
   );
 
   useEffect(() => {

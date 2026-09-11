@@ -5,6 +5,7 @@ import { PortfolioData } from '../types';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import Seo from '../components/Seo';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { aboutTitle } from '../lib/titles';
 import {
   PageShell,
   Reveal,
@@ -46,7 +47,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ data }) => {
       <Seo
         defaults={data.seo}
         data={data}
-        title={`About ${name}`}
+        exactTitle={aboutTitle(data)}
         description={`${heroIntro} ${company.role} at ${company.name}, based in ${location}.`}
         path="/about"
       />

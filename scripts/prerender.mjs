@@ -158,16 +158,18 @@ const injectHead = (html, tags) => html.replace('</head>', `${tags.join('\n    '
 const run = async () => {
   const template = await readFile(join(DIST, 'index.html'), 'utf8');
   const app = await loadAppModule();
-  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices } = app;
+  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices, composeTitle, homeTitle, aboutTitle } = app;
   const { data, source } = await loadContent(app);
   const seo = data.seo;
   const urls = [];
   const buildDate = new Date().toISOString().slice(0, 10);
 
   const buildTags = ({
-    title, description, image, path, type, published, author, tags, faqs, service,
+    title, exactTitle, description, image, path, type, published, author, tags, faqs, service,
   }) => {
-    const fullTitle = title ? `${title}${seo.titleSuffix}` : seo.siteName;
+    // composeTitle is lib/titles.ts — the same helper components/Seo.tsx uses,
+    // so the baked <title> and the one React writes on mount cannot disagree.
+    const fullTitle = composeTitle(seo, title, exactTitle);
     const url = absolute(seo.siteUrl, canonicalPath(path));
     const ogImage = absolute(seo.siteUrl, image || seo.ogImage);
     const desc = clampDescription(description || seo.description);
@@ -176,13 +178,13 @@ const run = async () => {
       seo,
       data,
       path,
-      title: title || seo.siteName,
+      title: title || exactTitle || seo.siteName,
       description: desc,
       faqs,
       service,
       article:
         type === 'article'
-          ? { headline: title || seo.siteName, image: ogImage, published, tags }
+          ? { headline: title || exactTitle || seo.siteName, image: ogImage, published, tags }
           : undefined,
     });
 
@@ -210,7 +212,7 @@ const run = async () => {
     const path = canonicalPath(routePath);
     let html = template;
 
-    const fullTitle = options.title ? `${options.title}${seo.titleSuffix}` : seo.siteName;
+    const fullTitle = composeTitle(seo, options.title, options.exactTitle);
     html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(fullTitle)}</title>`);
     // The template already carries a site-wide canonical and description; drop
     // them so the per-route ones injected below are the only copies.
@@ -274,7 +276,10 @@ const run = async () => {
   const staticRoutes = [
     {
       path: '/',
-      title: '',
+      // An exact title: it already carries the name, so no suffix. Leaving it
+      // blank used to fall through to seo.siteName and ship a bare
+      // "Ashim Kafle" on the priority-1.0 page.
+      exactTitle: homeTitle(data),
       description: data.tagline,
       body: `<h1>Design that sells. Marketing that scales.</h1>${para(data.tagline)}${para(
         data.heroIntro,
@@ -287,7 +292,10 @@ const run = async () => {
     },
     {
       path: '/about',
-      title: `About ${data.name}`,
+      // "About Ashim Kafle" + " | Ashim Kafle" put the name twice in the title
+      // of the page this restructure exists to rank for that name. The founder
+      // claim earns the space instead.
+      exactTitle: aboutTitle(data),
       description: `${data.name} — ${company.role} at ${company.name}. ${data.role} in ${contact.location}.`,
       body: `<h1>${escapeHtml(data.name)}${data.role ? ` — ${escapeHtml(data.role)}` : ''}${
         city ? ` in ${escapeHtml(city)}` : ''
