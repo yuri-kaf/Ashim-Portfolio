@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Faq, PortfolioData, SeoDefaults } from '../types';
 import { buildGraph, absolute } from '../lib/seoGraph';
+import { canonicalPath } from '../lib/routes';
 
 export interface SeoProps {
   defaults: SeoDefaults;
@@ -86,7 +87,10 @@ const Seo: React.FC<SeoProps> = ({
 }) => {
   const fullTitle = title ? `${title}${defaults.titleSuffix}` : defaults.siteName;
   const desc = description?.trim() || defaults.description;
-  const url = absolute(defaults.siteUrl, path);
+  // Canonicalised to match the URL lib/seoGraph.ts puts in the graph. A
+  // canonical tag and an og:url that disagree with the schema about the same
+  // page is the kind of inconsistency that costs indexing.
+  const url = absolute(defaults.siteUrl, canonicalPath(path));
   const ogImage = absolute(defaults.siteUrl, image?.trim() || defaults.ogImage);
 
   // faqs, service and (the article shape built below) are objects/arrays a
