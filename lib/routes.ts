@@ -33,12 +33,15 @@ export const routeByPath = (path: string): StaticRoute | undefined =>
  * Maps a nested path to the hub it hangs off. Order matters: the category
  * prefix must be tested before the bare blog prefix, or every category page
  * would breadcrumb as if it were a post.
+ *
+ * Carries no display name of its own — the label is read back out of
+ * STATIC_ROUTES, so renaming a route cannot leave its breadcrumb behind.
  */
-const PARENTS: Array<{ prefix: string; path: string; name: string }> = [
-  { prefix: '/services/', path: '/services', name: 'Services' },
-  { prefix: '/works/', path: '/works', name: 'Work' },
-  { prefix: '/blog/category/', path: '/blog', name: 'Journal' },
-  { prefix: '/blog/', path: '/blog', name: 'Journal' },
+const PARENTS: Array<{ prefix: string; path: string }> = [
+  { prefix: '/services/', path: '/services' },
+  { prefix: '/works/', path: '/works' },
+  { prefix: '/blog/category/', path: '/blog' },
+  { prefix: '/blog/', path: '/blog' },
 ];
 
 export interface Crumb {
@@ -46,15 +49,25 @@ export interface Crumb {
   path: string;
 }
 
+const crumbFor = (path: string): Crumb => ({
+  name: routeByPath(path)?.label ?? path,
+  path,
+});
+
 /**
  * Home → hub → current page. Never more than three levels, because the site
  * is never deeper than three levels.
  */
 export const breadcrumbTrail = (path: string, title: string): Crumb[] => {
-  if (path === '/') return [{ name: 'Home', path: '/' }];
-  const trail: Crumb[] = [{ name: 'Home', path: '/' }];
-  const parent = PARENTS.find((candidate) => path.startsWith(candidate.prefix));
-  if (parent) trail.push({ name: parent.name, path: parent.path });
-  trail.push({ name: title, path });
+  // A stray trailing slash would make a hub the parent of itself, and would
+  // put a non-canonical URL in the BreadcrumbList schema. Both matter: the
+  // prerender script builds these paths by hand, where a typo is easy.
+  const canonical = path.length > 1 ? path.replace(/\/+$/, '') : path;
+  if (canonical === '/') return [crumbFor('/')];
+
+  const trail: Crumb[] = [crumbFor('/')];
+  const parent = PARENTS.find((candidate) => canonical.startsWith(candidate.prefix));
+  if (parent) trail.push(crumbFor(parent.path));
+  trail.push({ name: title, path: canonical });
   return trail;
 };

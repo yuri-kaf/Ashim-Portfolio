@@ -37,4 +37,28 @@ describe('routes', () => {
   it('returns just home for the home page', () => {
     expect(breadcrumbTrail('/', 'Home')).toEqual([{ name: 'Home', path: '/' }]);
   });
+  it('reads hub names out of the route table rather than a second copy', () => {
+    // Guards the drift the whole module exists to prevent: renaming a route's
+    // label must rename its breadcrumb too.
+    const services = STATIC_ROUTES.find((route) => route.path === '/services');
+    expect(breadcrumbTrail('/services/branding', 'Branding')[1].name).toBe(services?.label);
+  });
+
+  it('normalises a trailing slash instead of doubling the crumb', () => {
+    expect(breadcrumbTrail('/services/', 'Services')).toEqual([
+      { name: 'Home', path: '/' },
+      { name: 'Services', path: '/services' },
+    ]);
+  });
+
+  it('still gets the visitor home from an unknown nested path', () => {
+    expect(breadcrumbTrail('/nonsense/foo', 'Nonsense')).toEqual([
+      { name: 'Home', path: '/' },
+      { name: 'Nonsense', path: '/nonsense/foo' },
+    ]);
+  });
+
+  it('returns nothing for a path that is not a route', () => {
+    expect(routeByPath('/nope')).toBeUndefined();
+  });
 });
