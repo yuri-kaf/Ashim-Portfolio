@@ -220,6 +220,13 @@ describe('sanitize — local SEO fields', () => {
     expect(data.seo.geo.areaServed).toContain('Nepal');
   });
 
+  it('restores the agency URL when a stored document left it blank', () => {
+    // The live content document carries url: '' — without this, the schema
+    // graph asserts a founder relationship to an Organization with no url.
+    const data = sanitizePortfolioData({ company: { name: 'Limi Creatives', url: '' } } as never);
+    expect(data.company.url).toBe('https://limicreatives.com');
+  });
+
   it('knows where Limi Creatives lives', () => {
     const data = sanitizePortfolioData({} as never);
     expect(data.company.url).toBe('https://limicreatives.com');

@@ -287,7 +287,11 @@ export const sanitizePortfolioData = (input: unknown): PortfolioData => {
       name: str(dirtyCompany.name, base.company.name),
       role: str(dirtyCompany.role, base.company.role),
       description: str(dirtyCompany.description, base.company.description),
-      url: str(dirtyCompany.url, base.company.url ?? ''),
+      // Empty is treated as absent, not as an intentional blank. The agency
+      // URL is what ties the Person to the Organization in the schema graph,
+      // and a stored document written before this field existed carries '' —
+      // which would silently ship an Organization node with no url.
+      url: str(dirtyCompany.url) || base.company.url || '',
     },
     availability: ['available', 'busy', 'vacation'].includes(dirty.availability)
       ? dirty.availability

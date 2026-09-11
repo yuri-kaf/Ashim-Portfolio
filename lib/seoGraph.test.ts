@@ -23,6 +23,14 @@ describe('buildGraph', () => {
     expect(nodeOf(graph, 'Organization').founder).toEqual({ '@id': PERSON_ID });
   });
 
+  it('gives the agency node a url, not just an @id', () => {
+    // The seed and the live content document both carried url: '', which
+    // shipped a founder relationship pointing at an Organization with no
+    // address on the web.
+    const graph = buildGraph({ ...base, path: '/about', title: 'About' });
+    expect(nodeOf(graph, 'Organization').url).toBe('https://limicreatives.com');
+  });
+
   it('references the exact @id limicreatives.com already publishes', () => {
     // Verified live 2026-09-12. A trailing slash or a www prefix here would
     // silently create a second, unrelated entity instead of merging.

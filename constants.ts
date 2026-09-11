@@ -20,7 +20,7 @@ const SEED = {
     name: "Limi Creatives",
     role: "Co-founder & CMO",
     description: "A creative agency delivering design, branding, and full-service marketing.",
-    url: ""
+    url: "https://limicreatives.com"
   },
   vibe: {
     title: "The Crimson Approach",
