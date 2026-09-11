@@ -26,6 +26,19 @@ import { build } from 'esbuild';
 const DIST = 'dist';
 const CONTENT_URL = process.env.PRERENDER_CONTENT_URL ?? 'https://www.ashimkafle.com.np/api/content';
 
+/**
+ * Google truncates a description past roughly 160 characters, so a long one
+ * loses its ending rather than gaining reach. Cut at a word boundary and let
+ * the ellipsis show the cut was deliberate.
+ */
+const clampDescription = (value = '', limit = 160) => {
+  const text = String(value).replace(/\s+/g, ' ').trim();
+  if (text.length <= limit) return text;
+  const cut = text.slice(0, limit - 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > limit * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, '')}…`;
+};
+
 const escapeHtml = (value = '') =>
   String(value)
     .replace(/&/g, '&amp;')
@@ -157,7 +170,7 @@ const run = async () => {
     const fullTitle = title ? `${title}${seo.titleSuffix}` : seo.siteName;
     const url = absolute(seo.siteUrl, canonicalPath(path));
     const ogImage = absolute(seo.siteUrl, image || seo.ogImage);
-    const desc = description || seo.description;
+    const desc = clampDescription(description || seo.description);
 
     const graph = buildGraph({
       seo,
@@ -282,7 +295,7 @@ const run = async () => {
     {
       path: '/about',
       title: `About ${data.name}`,
-      description: `${data.heroIntro} ${company.role} at ${company.name}, based in ${contact.location}.`,
+      description: `${data.name} — ${company.role} at ${company.name}. ${data.role} in ${contact.location}.`,
       body: `<h1>${escapeHtml(data.name)}${data.role ? ` — ${escapeHtml(data.role)}` : ''}${
         city ? ` in ${escapeHtml(city)}` : ''
       }</h1>${para(data.tagline)}${para(data.heroIntro)}${founderSentence}${
