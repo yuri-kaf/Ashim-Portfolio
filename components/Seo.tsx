@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
-import { SeoDefaults } from '../types';
+import { useEffect, useMemo } from 'react';
+import { Faq, PortfolioData, SeoDefaults } from '../types';
+import { buildGraph, absolute } from '../lib/seoGraph';
 
 export interface SeoProps {
   defaults: SeoDefaults;
+  /** Feeds lib/seoGraph.ts — the Person, the breadcrumb trail, and more. */
+  data: PortfolioData;
   /** Page title without the site suffix. Omit for the home page. */
   title?: string;
   description?: string;
@@ -12,8 +15,11 @@ export interface SeoProps {
   path: string;
   type?: 'website' | 'article';
   publishedTime?: string;
-  author?: string;
   tags?: string[];
+  /** Set on a page that should emit FAQPage schema. */
+  faqs?: Faq[];
+  /** Set on /services/:slug to emit Service schema. */
+  service?: { name: string; description: string };
   /** Keeps drafts and previews out of search results. */
   noindex?: boolean;
 }
@@ -39,19 +45,16 @@ const upsertLink = (rel: string, href: string) => {
   element.setAttribute('href', href);
 };
 
-const upsertJsonLd = (payload: object | null) => {
+const upsertJsonLd = (json: string | null) => {
   const id = 'seo-jsonld';
   document.getElementById(id)?.remove();
-  if (!payload) return;
+  if (!json) return;
   const script = document.createElement('script');
   script.id = id;
   script.type = 'application/ld+json';
-  script.textContent = JSON.stringify(payload);
+  script.textContent = json;
   document.head.appendChild(script);
 };
-
-const absolute = (siteUrl: string, value: string): string =>
-  /^https?:\/\//.test(value) ? value : `${siteUrl.replace(/\/$/, '')}${value.startsWith('/') ? '' : '/'}${value}`;
 
 /**
  * Writes per-route metadata into <head>.
@@ -61,24 +64,62 @@ const absolute = (siteUrl: string, value: string): string =>
  * scrapers do not run scripts — which is why the build also pre-renders static
  * HTML per post with these same tags baked in (see scripts/prerender.mjs).
  *
+ * The JSON-LD graph comes from lib/seoGraph.ts — the same builder the
+ * prerenderer uses — so the runtime head and the static HTML never drift
+ * apart.
+ *
  * Renders nothing; it only manipulates the document head.
  */
 const Seo: React.FC<SeoProps> = ({
   defaults,
+  data,
   title,
   description,
   image,
   path,
   type = 'website',
   publishedTime,
-  author,
   tags,
+  faqs,
+  service,
   noindex = false,
 }) => {
   const fullTitle = title ? `${title}${defaults.titleSuffix}` : defaults.siteName;
   const desc = description?.trim() || defaults.description;
   const url = absolute(defaults.siteUrl, path);
   const ogImage = absolute(defaults.siteUrl, image?.trim() || defaults.ogImage);
+
+  // faqs, service and (the article shape built below) are objects/arrays a
+  // caller may construct inline in JSX, which gives them a fresh identity
+  // every render even when their content hasn't changed. Depending on the
+  // objects themselves would defeat the memo below — it would recompute (and
+  // upsertJsonLd would tear down and rebuild the script tag) on every
+  // render. Serialising their content into a primitive key sidesteps that:
+  // the memo only recomputes when the actual content changes.
+  const tagsKey = tags?.join('|') ?? '';
+  const faqsKey = faqs ? JSON.stringify(faqs) : '';
+  const serviceKey = service ? JSON.stringify(service) : '';
+
+  const article = type === 'article'
+    ? { headline: title || defaults.siteName, image: ogImage, published: publishedTime, tags }
+    : undefined;
+
+  const graph = useMemo(
+    () => JSON.stringify(buildGraph({
+      seo: defaults,
+      data,
+      path,
+      title: title || defaults.siteName,
+      description: desc,
+      faqs,
+      service,
+      article,
+    })),
+    // article, faqs and service are intentionally omitted here in favour of
+    // the primitive keys derived above — see the comment where they're built.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [defaults, data, path, title, desc, type, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
+  );
 
   useEffect(() => {
     document.title = fullTitle;
@@ -102,28 +143,7 @@ const Seo: React.FC<SeoProps> = ({
       upsertMeta('name', 'twitter:creator', defaults.twitterHandle);
     }
 
-    upsertJsonLd(
-      type === 'article'
-        ? {
-            '@context': 'https://schema.org',
-            '@type': 'BlogPosting',
-            headline: title,
-            description: desc,
-            image: ogImage,
-            url,
-            ...(publishedTime ? { datePublished: publishedTime } : {}),
-            ...(author ? { author: { '@type': 'Person', name: author } } : {}),
-            ...(tags?.length ? { keywords: tags.join(', ') } : {}),
-            publisher: { '@type': 'Person', name: defaults.siteName },
-          }
-        : {
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: defaults.siteName,
-            url: absolute(defaults.siteUrl, '/'),
-            description: desc,
-          },
-    );
+    upsertJsonLd(graph);
   }, [
     fullTitle,
     desc,
@@ -131,13 +151,10 @@ const Seo: React.FC<SeoProps> = ({
     ogImage,
     type,
     noindex,
-    title,
-    publishedTime,
-    author,
-    tags,
     defaults.siteName,
     defaults.twitterHandle,
     defaults.siteUrl,
+    graph,
   ]);
 
   return null;

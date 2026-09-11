@@ -47,7 +47,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo defaults={data.seo} title="Journal" path="/blog" description={data.pageIntros.blog} />
+      <Seo defaults={data.seo} data={data} title="Journal" path="/blog" description={data.pageIntros.blog} />
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-40">
         <div className="pointer-events-none absolute -left-32 -top-32 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[120px]" />

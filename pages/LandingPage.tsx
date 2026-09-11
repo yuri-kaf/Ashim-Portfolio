@@ -642,7 +642,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
 
   return (
     <div className="bg-[var(--paper)]">
-      <Seo defaults={data.seo} path="/" description={data.tagline} />
+      <Seo defaults={data.seo} data={data} path="/" description={data.tagline} />
       <Hero data={data} />
       <Ticker items={ticker} />
       <Disciplines disciplines={disciplines} />

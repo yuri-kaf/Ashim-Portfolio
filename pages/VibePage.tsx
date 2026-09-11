@@ -81,7 +81,7 @@ const VibePage: React.FC<VibePageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo defaults={data.seo} title="Vibe" path="/vibe" description={data.pageIntros.vibe} />
+      <Seo defaults={data.seo} data={data} title="Vibe" path="/vibe" description={data.pageIntros.vibe} />
       {/* ---------- Masthead with oversized ghost word ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-32 pt-40">
         <div className="pointer-events-none absolute -right-32 top-0 h-[560px] w-[560px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[130px]" />

@@ -67,6 +67,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
       <PageShell className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6">
       <Seo
         defaults={data.seo}
+        data={data}
         title={project.title}
         description={project.subtitle || project.description}
         image={project.image}

@@ -39,13 +39,13 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
     <PageShell className="min-h-screen bg-[var(--paper)]">
       <Seo
         defaults={data.seo}
+        data={data}
         title={post.seoTitle?.trim() || post.title}
         description={post.metaDescription?.trim() || post.excerpt}
         image={post.ogImage?.trim() || post.image}
         path={`/blog/${post.slug}`}
         type="article"
         publishedTime={post.date}
-        author={post.author || data.name}
         tags={post.tags}
         noindex={isDraft}
       />
