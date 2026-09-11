@@ -238,7 +238,15 @@ const run = async () => {
 
   // A pointer service's page lives on limicreatives.com. It gets no file and
   // no sitemap entry here — that is the whole point of the two-site split.
-  const owned = (data.services ?? []).filter((s) => s.mode === 'page' && s.published !== false);
+  // The body guard is load-bearing, not a tidiness check. A content document
+  // written before `mode` existed has no pointers at all — sanitize defaults
+  // every such service to 'page' — so without it a deploy publishes a page per
+  // legacy service, including empty ones at /services/seo-content and
+  // /services/performance-marketing that compete with limicreatives.com for
+  // the queries it already owns. No body, no page.
+  const owned = (data.services ?? []).filter(
+    (s) => s.mode === 'page' && s.published !== false && s.body.trim(),
+  );
   const pointers = (data.services ?? []).filter((s) => s.mode === 'pointer' && s.externalUrl);
 
   const serviceLinks = [
