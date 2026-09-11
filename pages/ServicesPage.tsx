@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ArrowUpRight, Plus, Check } from 'lucide-react';
 import SafeLottie from '../components/SafeLottie';
 import { PortfolioData, Service } from '../types';
+import { ownedServices, pointerServices } from '../lib/services';
 import {
   PageShell,
   Reveal,
@@ -49,7 +50,10 @@ const ServiceVisual: React.FC<{ service: Service }> = ({ service }) => {
 };
 
 const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
-  const services = (data?.services || []).filter(Boolean);
+  // Owned pages first, then the outbound pointers. A service in neither list
+  // — unpublished, or page-mode with no body — renders no card at all: the
+  // build writes it no file, so a card for it would be a visible broken link.
+  const services = [...ownedServices(data), ...pointerServices(data)];
   const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const [active, setActive] = useState(0);
   const reduced = useReducedMotion();

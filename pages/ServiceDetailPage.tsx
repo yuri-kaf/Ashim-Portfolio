@@ -7,6 +7,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import Markdown from '../components/Markdown';
 import { PageShell, Reveal, SectionLabel } from '../components/Motion';
 import NotFoundPage from './NotFoundPage';
+import { ownedServices } from '../lib/services';
 
 interface ServiceDetailPageProps {
   data: PortfolioData;
@@ -24,10 +25,7 @@ interface ServiceDetailPageProps {
 const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ data }) => {
   const { slug } = useParams<{ slug: string }>();
 
-  const services = useMemo(
-    () => (data?.services ?? []).filter((entry) => entry && entry.mode === 'page' && entry.published),
-    [data?.services],
-  );
+  const services = useMemo(() => ownedServices(data), [data]);
 
   const service = services.find((entry) => entry.slug === slug);
 
@@ -91,11 +89,10 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ data }) => {
       {/* ---------- Body ---------- */}
       <section className="border-t border-black/[0.05] px-6 py-24">
         <div className="mx-auto max-w-[760px]">
-          {service.body?.trim() ? (
-            <Markdown>{service.body}</Markdown>
-          ) : (
-            <p className="mono text-[var(--grey-2)]">This service has no write-up yet.</p>
-          )}
+          {/* ownedServices guarantees a non-empty body, so there is no
+              "nothing here yet" state to render — a body-less service never
+              resolves to this page at all. */}
+          <Markdown>{service.body}</Markdown>
         </div>
       </section>
 

@@ -158,7 +158,7 @@ const injectHead = (html, tags) => html.replace('</head>', `${tags.join('\n    '
 const run = async () => {
   const template = await readFile(join(DIST, 'index.html'), 'utf8');
   const app = await loadAppModule();
-  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES } = app;
+  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices } = app;
   const { data, source } = await loadContent(app);
   const seo = data.seo;
   const urls = [];
@@ -249,18 +249,11 @@ const run = async () => {
   const projects = data.projects ?? [];
   const categories = data.blogCategories ?? [];
 
-  // A pointer service's page lives on limicreatives.com. It gets no file and
-  // no sitemap entry here — that is the whole point of the two-site split.
-  // The body guard is load-bearing, not a tidiness check. A content document
-  // written before `mode` existed has no pointers at all — sanitize defaults
-  // every such service to 'page' — so without it a deploy publishes a page per
-  // legacy service, including empty ones at /services/seo-content and
-  // /services/performance-marketing that compete with limicreatives.com for
-  // the queries it already owns. No body, no page.
-  const owned = (data.services ?? []).filter(
-    (s) => s.mode === 'page' && s.published !== false && s.body.trim(),
-  );
-  const pointers = (data.services ?? []).filter((s) => s.mode === 'pointer' && s.externalUrl);
+  // One predicate, shared with the SPA — see lib/services.ts for why the body
+  // guard is load-bearing. A pointer service's page lives on limicreatives.com
+  // and gets no file and no sitemap entry here.
+  const owned = ownedServices(data);
+  const pointers = pointerServices(data);
 
   const serviceLinks = [
     ...owned.map((s) => ({ href: `/services/${s.slug}`, label: s.title })),

@@ -165,7 +165,10 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
           <Field
             key={field.key}
             label={field.label}
-            kind={field.kind === 'textarea' ? 'textarea' : 'text'}
+            kind={
+              field.kind === 'textarea' || field.kind === 'select' ? field.kind : 'text'
+            }
+            options={field.options}
             rows={field.rows}
             help={field.help}
             recommendedMax={field.recommendedMax}

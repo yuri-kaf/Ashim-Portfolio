@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { DEFAULT_DATA } from '../lib/defaults.js';
+import { ownedServices } from '../lib/services';
 import Seo from '../components/Seo';
 import Breadcrumbs from '../components/Breadcrumbs';
 import {
@@ -41,9 +42,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ data }) => {
 
   // Only services that live on this site — a pointer service belongs to
   // limicreatives.com and has no page here to link to.
-  const ownedServices = (data?.services ?? []).filter(
-    (service) => service && service.mode === 'page' && service.published,
-  );
+  const owned = ownedServices(data);
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
@@ -163,9 +162,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ data }) => {
             className="display mb-14 text-4xl text-neutral-900 md:text-6xl"
           />
 
-          {ownedServices.length > 0 ? (
+          {owned.length > 0 ? (
             <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-3" stagger={0.12}>
-              {ownedServices.map((service) => (
+              {owned.map((service) => (
                 <StaggerItem key={service.id}>
                   <Link
                     to={`/services/${service.slug}`}

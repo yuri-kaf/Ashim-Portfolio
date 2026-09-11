@@ -6,6 +6,9 @@ export type FieldKind =
   | 'list'
   | 'images'
   | 'toggle'
+  /** A dropdown constrained to `options`. Free text where only a fixed set of
+   *  values is meaningful is a typo waiting to change behaviour. */
+  | 'select'
   /** A list of two-string objects, edited as "first | second" lines. */
   | 'pairs';
 
@@ -13,6 +16,8 @@ export interface FieldSpec {
   key: string;
   label: string;
   kind?: FieldKind;
+  /** For `select`: the only values the field may take. */
+  options?: string[];
   rows?: number;
   /**
    * For `pairs`: the two object keys either side of the "|". Defaults to
@@ -95,7 +100,12 @@ export const COLLECTIONS: CollectionSpec[] = [
     fields: [
       { key: 'title', label: 'Title' },
       { key: 'slug', label: 'URL slug', help: 'Becomes /services/<slug>. Changing it breaks existing links.' },
-      { key: 'mode', label: 'Mode', help: '"page" builds a page here. "pointer" links out to Limi Creatives instead — use it for any service limicreatives.com already has a page for.' },
+      // A dropdown, not free text. `lib/sanitize.ts` treats anything that is
+      // not exactly "pointer" as "page", so typing "Pointer" here used to
+      // silently publish a competing page on this domain for a service
+      // limicreatives.com already ranks for.
+      { key: 'mode', label: 'Mode', kind: 'select', options: ['page', 'pointer'],
+        help: '"page" builds a page here. "pointer" links out to Limi Creatives instead — use it for any service limicreatives.com already has a page for.' },
       { key: 'externalUrl', label: 'Points to', help: 'Required when mode is "pointer".' },
       { key: 'icon', label: 'Icon name', help: 'A lucide icon name, e.g. "Palette".' },
       { key: 'startingAt', label: 'Starting price', help: 'Optional anchor, e.g. "from $2,000".' },
@@ -219,6 +229,9 @@ export const emptyItem = (spec: CollectionSpec): Record<string, unknown> => {
   for (const field of spec.fields) {
     if (field.kind === 'list' || field.kind === 'images' || field.kind === 'pairs') item[field.key] = [];
     else if (field.kind === 'toggle') item[field.key] = field.key === 'published';
+    // A select starts on its first option rather than on '', so the value the
+    // dropdown displays is the value that gets saved.
+    else if (field.kind === 'select') item[field.key] = field.options?.[0] ?? '';
     else item[field.key] = '';
   }
   return item;

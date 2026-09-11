@@ -3,6 +3,7 @@ import { DEFAULT_DATA } from '../lib/defaults.js';
 import { Link } from 'react-router-dom';
 import { INITIAL_DATA } from '../constants';
 import { PortfolioData } from '../types';
+import { ownedServices } from '../lib/services';
 
 const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
   const name = data?.name || INITIAL_DATA.name;
@@ -10,9 +11,10 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
   const company = data?.company || INITIAL_DATA.company;
   const companyUrl = company.url?.trim() || DEFAULT_DATA.company.url || '';
   const social = data?.social?.length ? data.social : INITIAL_DATA.social;
-  const ownedServices = (data?.services || []).filter(
-    (s) => s && s.mode === 'page' && s.published,
-  );
+  // lib/services.ts is the single predicate — the footer links sitewide, so
+  // linking a service the build writes no file for would be a sitewide broken
+  // link.
+  const owned = ownedServices(data);
 
   return (
     <footer data-nav-theme="dark" className="bg-[#0a0a0a] px-5 pb-10 pt-20 md:px-10">
@@ -49,11 +51,11 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
             </div>
           </div>
 
-          {ownedServices.length > 0 && (
+          {owned.length > 0 && (
             <div>
               <p className="mono mb-4 text-white/40">Services</p>
               <div className="flex flex-col gap-2">
-                {ownedServices.map((s) => (
+                {owned.map((s) => (
                   <Link
                     key={s.id}
                     to={`/services/${s.slug}`}
