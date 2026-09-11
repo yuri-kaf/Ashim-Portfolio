@@ -1,4 +1,4 @@
-import { breadcrumbTrail } from './routes';
+import { breadcrumbTrail, canonicalPath } from './routes';
 import { Faq, PortfolioData, SeoDefaults } from '../types';
 
 /**
@@ -12,7 +12,7 @@ export const LIMI_ORG_ID = 'https://limicreatives.com/#organization';
 export const PERSON_ID = 'https://www.ashimkafle.com.np/#person';
 
 export const absolute = (siteUrl: string, value: string): string =>
-  /^https?:\/\//.test(value)
+  /^(https?:)?\/\//.test(value)
     ? value
     : `${siteUrl.replace(/\/$/, '')}${value.startsWith('/') ? '' : '/'}${value}`;
 
@@ -42,7 +42,9 @@ export const buildGraph = ({
   seo, data, path, title, description, faqs, article, service,
 }: GraphInput) => {
   const origin = seo.siteUrl.replace(/\/$/, '');
-  const url = absolute(origin, path);
+  // Canonicalised so this page's self-URL cannot disagree with the URL the
+  // BreadcrumbList gives it — one graph must not name a page two ways.
+  const url = absolute(origin, canonicalPath(path));
   const desc = description || seo.description;
 
   const nodes: Array<Record<string, unknown>> = [

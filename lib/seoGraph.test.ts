@@ -63,6 +63,19 @@ describe('buildGraph', () => {
     expect(post.publisher).toEqual({ '@id': LIMI_ORG_ID });
   });
 
+  it('never names one page two different ways in the same graph', () => {
+    // A trailing slash used to reach the self-URL raw while the breadcrumb
+    // was canonicalised, so one graph disagreed with itself.
+    const graph = buildGraph({
+      ...base, path: '/services/branding/', title: 'Branding',
+      service: { name: 'Branding', description: 'x' },
+    });
+    const crumbs = nodeOf(graph, 'BreadcrumbList').itemListElement;
+    expect(nodeOf(graph, 'Service').url).toBe(crumbs[crumbs.length - 1].item);
+    expect(nodeOf(graph, 'Service').url)
+      .toBe('https://www.ashimkafle.com.np/services/branding');
+  });
+
   it('resolves image paths against the site origin', () => {
     const graph = buildGraph({ ...base, path: '/', title: 'Home' });
     expect(nodeOf(graph, 'Person').image).toBe('https://www.ashimkafle.com.np/ashim-portrait.png');

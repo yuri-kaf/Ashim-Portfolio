@@ -44,6 +44,15 @@ const PARENTS: Array<{ prefix: string; path: string }> = [
   { prefix: '/blog/', path: '/blog' },
 ];
 
+/**
+ * One page, one spelling. A stray trailing slash would otherwise make a hub
+ * the parent of itself in the breadcrumb trail, and would put two different
+ * URLs for the same page into one JSON-LD graph. Both matter: the prerender
+ * script builds these paths by hand, where a typo is easy.
+ */
+export const canonicalPath = (path: string): string =>
+  path.length > 1 ? path.replace(/\/+$/, '') : path;
+
 export interface Crumb {
   name: string;
   path: string;
@@ -59,10 +68,7 @@ const crumbFor = (path: string): Crumb => ({
  * is never deeper than three levels.
  */
 export const breadcrumbTrail = (path: string, title: string): Crumb[] => {
-  // A stray trailing slash would make a hub the parent of itself, and would
-  // put a non-canonical URL in the BreadcrumbList schema. Both matter: the
-  // prerender script builds these paths by hand, where a typo is easy.
-  const canonical = path.length > 1 ? path.replace(/\/+$/, '') : path;
+  const canonical = canonicalPath(path);
   if (canonical === '/') return [crumbFor('/')];
 
   const trail: Crumb[] = [crumbFor('/')];
