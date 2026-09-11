@@ -14,10 +14,14 @@ import LandingPage from './pages/LandingPage';
 import WorksPage from './pages/WorksPage';
 import WorkDetailPage from './pages/WorkDetailPage';
 import ServicesPage from './pages/ServicesPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
 import VibePage from './pages/VibePage';
 import DashboardPage from './pages/DashboardPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
+import BlogCategoryPage from './pages/BlogCategoryPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 import GalleryPage from './pages/GalleryPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -73,11 +77,16 @@ const App: React.FC = () => {
   const routes = (
     <Routes location={location}>
       <Route path="/" element={<LandingPage data={data} />} />
+      <Route path="/about" element={<AboutPage data={data} />} />
+      <Route path="/contact" element={<ContactPage data={data} />} />
       <Route path="/works" element={<WorksPage data={data} />} />
       <Route path="/works/:id" element={<WorkDetailPage data={data} />} />
       <Route path="/services" element={<ServicesPage data={data} />} />
+      <Route path="/services/:slug" element={<ServiceDetailPage data={data} />} />
       <Route path="/vibe" element={<VibePage data={data} />} />
       <Route path="/blog" element={<BlogPage data={data} />} />
+      {/* Before /blog/:slug — otherwise "category" is read as a post slug. */}
+      <Route path="/blog/category/:slug" element={<BlogCategoryPage data={data} />} />
       <Route path="/blog/:slug" element={<BlogDetailPage data={data} />} />
       <Route path="/gallery" element={<GalleryPage data={data} />} />
       {/* Not linked in the nav — the admin panel is being built separately. */}

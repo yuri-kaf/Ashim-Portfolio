@@ -13,11 +13,13 @@ const Navbar: React.FC<{ data: PortfolioData }> = ({ data }) => {
   const location = useLocation();
 
   const navLinks = [
+    { name: 'About', path: '/about' },
     { name: 'Work', path: '/works' },
     { name: 'Services', path: '/services' },
     { name: 'Gallery', path: '/gallery' },
     { name: 'Vibe', path: '/vibe' },
     { name: 'Blog', path: '/blog' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   const name = data?.name || INITIAL_DATA.name;
