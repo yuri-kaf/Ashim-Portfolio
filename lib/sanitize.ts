@@ -96,13 +96,16 @@ const project = (item: Dirty): Project => {
 const service = (item: Dirty): Service => {
   const serviceId = id(item.id, 'service');
   const title = str(item.title);
+  // Trimmed once: a whitespace-only value is nowhere to point, and it would
+  // also land in an href verbatim.
+  const externalUrl = str(item.externalUrl).trim();
   return {
     id: serviceId,
     slug: resolveSlug(str(item.slug), title, serviceId),
-    externalUrl: str(item.externalUrl),
+    externalUrl,
     // A pointer with nowhere to point would render a dead card, so it falls
     // back to being a normal page.
-    mode: item.mode === 'pointer' && str(item.externalUrl) ? 'pointer' : 'page',
+    mode: item.mode === 'pointer' && externalUrl ? 'pointer' : 'page',
     title,
     description: str(item.description),
     image: str(item.image),

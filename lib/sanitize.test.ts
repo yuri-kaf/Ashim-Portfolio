@@ -191,6 +191,14 @@ describe('sanitize — local SEO fields', () => {
     expect(data.services[0].mode).toBe('page');
   });
 
+  it('treats a whitespace-only destination as no destination', () => {
+    const data = sanitizePortfolioData({
+      services: [{ id: 's1', title: 'SEO', mode: 'pointer', externalUrl: '   ' }],
+    } as never);
+    expect(data.services[0].mode).toBe('page');
+    expect(data.services[0].externalUrl).toBe('');
+  });
+
   it('drops half-filled faqs', () => {
     const data = sanitizePortfolioData({
       services: [{
