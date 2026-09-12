@@ -157,7 +157,11 @@ const Seo: React.FC<SeoProps> = ({
     document.title = fullTitle;
 
     upsertMeta('name', 'description', desc);
-    upsertMeta('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
+    // 'follow', not 'nofollow'. Keeping a page out of the index is no reason
+    // to stop crawlers following its links — a thin case study still links to
+    // /works and the CTA, and this matches the static HTML the prerenderer
+    // writes for the same page.
+    upsertMeta('name', 'robots', noindex ? 'noindex, follow' : 'index, follow');
     upsertLink('canonical', url);
 
     upsertMeta('property', 'og:title', fullTitle);

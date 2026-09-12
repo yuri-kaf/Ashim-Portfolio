@@ -6,6 +6,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 import { PortfolioData } from '../types';
 import NotFoundPage from './NotFoundPage';
+import { isSubstantialProject } from '../lib/projects';
 import {
   PageShell,
   Reveal,
@@ -87,6 +88,10 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
         path={`/works/${project.slug}`}
         type="article"
         schemaType="CreativeWork"
+        // A case study too thin to index statically must not be indexable at
+        // runtime either — the same predicate the prerenderer reads, so the
+        // baked HTML and the head React writes cannot disagree.
+        noindex={!isSubstantialProject(project)}
       />
 
       {/* ---------- Title block ---------- */}

@@ -158,7 +158,7 @@ const injectHead = (html, tags) => html.replace('</head>', `${tags.join('\n    '
 const run = async () => {
   const template = await readFile(join(DIST, 'index.html'), 'utf8');
   const app = await loadAppModule();
-  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices, composeTitle, homeTitle, aboutTitle } = app;
+  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices, isSubstantialProject, composeTitle, homeTitle, aboutTitle } = app;
   const { data, source } = await loadContent(app);
   const seo = data.seo;
   const urls = [];
@@ -166,7 +166,7 @@ const run = async () => {
 
   const buildTags = ({
     title, exactTitle, breadcrumbTitle, description, image, path, type, schemaType,
-    published, author, tags, faqs, service,
+    published, author, tags, faqs, service, noindex,
   }) => {
     // composeTitle is lib/titles.ts — the same helper components/Seo.tsx uses,
     // so the baked <title> and the one React writes on mount cannot disagree.
@@ -200,6 +200,11 @@ const run = async () => {
 
     return [
       `<meta name="description" content="${escapeHtml(desc)}" />`,
+      // Only emitted when the page is held back. 'follow' is deliberate: the
+      // page stays reachable and its links stay worth crawling — see
+      // lib/projects.ts. An indexable page gets no robots tag at all, which
+      // is what every crawler already assumes.
+      ...(noindex ? ['<meta name="robots" content="noindex, follow" />'] : []),
       `<link rel="canonical" href="${escapeHtml(url)}" />`,
       `<meta property="og:title" content="${escapeHtml(fullTitle)}" />`,
       `<meta property="og:description" content="${escapeHtml(desc)}" />`,
@@ -429,6 +434,10 @@ const run = async () => {
 
   for (const project of projects) {
     const path = `/works/${project.slug}`;
+    // A thin case study still gets its file — /works links it and the page has
+    // to resolve — but it is held out of the index and out of the sitemap
+    // until it carries real copy. See lib/projects.ts for the threshold.
+    const indexable = isSubstantialProject(project);
     // A case study is a CreativeWork, not a BlogPosting. og:type stays
     // "article" — that is Open Graph's vocabulary for any long-form page and
     // has nothing to do with schema.org.
@@ -446,11 +455,12 @@ const run = async () => {
       type: 'article',
       schemaType: 'CreativeWork',
       published,
+      noindex: !indexable,
       body: `<article><h1>${escapeHtml(project.title)}</h1>${para(
         project.subtitle || project.description,
       )}${markdownToHtml(project.caseStudy)}</article>`,
     });
-    addUrl(path, '0.7');
+    if (indexable) addUrl(path, '0.7');
   }
 
   // Drafts are deliberately skipped: no static page, no sitemap entry.
@@ -516,7 +526,7 @@ ${urls
   );
 
   console.log(
-    `prerender (${source}): ${staticRoutes.length} static, ${owned.length} services (${pointers.length} pointers skipped), ${projects.length} projects, ${posts.length} posts, ${liveCategories.length} categories, sitemap with ${urls.length} URLs`,
+    `prerender (${source}): ${staticRoutes.length} static, ${owned.length} services (${pointers.length} pointers skipped), ${projects.length} projects (${projects.length - projects.filter(isSubstantialProject).length} noindexed as thin), ${posts.length} posts, ${liveCategories.length} categories, sitemap with ${urls.length} URLs`,
   );
 };
 

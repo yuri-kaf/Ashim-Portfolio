@@ -12,4 +12,5 @@ export { sanitizePortfolioData } from '../lib/sanitize.js';
 export { buildGraph, absolute } from '../lib/seoGraph.js';
 export { breadcrumbTrail, canonicalPath, routeByPath, STATIC_ROUTES } from '../lib/routes.js';
 export { ownedServices, pointerServices } from '../lib/services.js';
+export { isSubstantialProject } from '../lib/projects.js';
 export { composeTitle, homeTitle, aboutTitle } from '../lib/titles.js';
