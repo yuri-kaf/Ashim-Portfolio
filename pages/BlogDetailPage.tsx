@@ -31,6 +31,13 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
   // be indexed.
   const isDraft = !post.published;
 
+  // The category the post is filed under, if it still exists — a post whose
+  // category was deleted keeps its id, so this can legitimately come back
+  // empty and the byline simply omits the link.
+  const category = (data?.blogCategories ?? []).find(
+    (entry) => entry && entry.id === post.categoryId,
+  );
+
   const published = posts.filter((entry) => entry.published && entry.id !== post.id);
   const next = published[0];
   const readTime = post.readTime?.trim() || estimateReadTime(post.content);
@@ -80,6 +87,17 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
                 <>
                   <span className="text-[var(--grey-2)]">·</span>
                   <span>{post.author}</span>
+                </>
+              )}
+              {category && (
+                <>
+                  <span className="text-[var(--grey-2)]">·</span>
+                  <Link
+                    to={`/blog/category/${category.slug}`}
+                    className="link-wipe text-[var(--ink)]"
+                  >
+                    {category.title}
+                  </Link>
                 </>
               )}
             </div>

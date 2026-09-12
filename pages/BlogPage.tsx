@@ -44,6 +44,13 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
 
   const [featured, ...rest] = blogs;
 
+  // Only categories with something published in them, matching the rule the
+  // prerenderer uses to decide which category pages exist at all — a chip
+  // pointing at a page that was never built is a link to a 404.
+  const categories = (data?.blogCategories || [])
+    .filter(Boolean)
+    .filter((category) => blogs.some((post) => post.categoryId === category.id));
+
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
@@ -70,6 +77,26 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
               humans and the machines they design for.
             </p>
           </Reveal>
+
+          {/* The prerendered body links to these; without them here the links
+              vanish the moment React mounts, leaving crawlers with paths no
+              visitor is ever shown. */}
+          {categories.length > 0 && (
+            <Reveal delay={0.4}>
+              <nav aria-label="Journal categories" className="mt-12 flex flex-wrap items-center gap-3">
+                <span className="mono bracket text-[var(--grey-1)]">Topics</span>
+                {categories.map((category) => (
+                  <Link
+                    key={category.id}
+                    to={`/blog/category/${category.slug}`}
+                    className="tag-physical transition-colors duration-300 hover:text-[var(--ink)]"
+                  >
+                    {category.title}
+                  </Link>
+                ))}
+              </nav>
+            </Reveal>
+          )}
         </div>
       </header>
 
