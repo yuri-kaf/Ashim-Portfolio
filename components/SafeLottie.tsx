@@ -1,5 +1,4 @@
 import React from 'react';
-import Lottie from 'lottie-react';
 
 /**
  * Hardened wrapper around lottie-react.
@@ -12,7 +11,16 @@ import Lottie from 'lottie-react';
  * Two layers of defence:
  *   1. `sanitizeAnimationData` drops layers that can't resolve.
  *   2. An error boundary catches anything else and shows `fallback` instead.
+ *
+ * lottie-react (and the lottie-web player underneath it) is ~315 kB, and a
+ * service with no animation never needs a frame of it — so the player is
+ * imported only once there is animation data that survives sanitising. Until
+ * the chunk lands, `fallback` — normally the service's still image — holds the
+ * space, which is exactly what this component already renders when there is
+ * nothing to animate.
  */
+
+const Lottie = React.lazy(() => import('lottie-react'));
 
 interface LottieJSON {
   layers?: any[];
@@ -84,7 +92,9 @@ const SafeLottie: React.FC<SafeLottieProps> = ({ animationData, className, fallb
 
   return (
     <LottieBoundary fallback={<>{fallback}</>}>
-      <Lottie animationData={safeData} loop className={className} />
+      <React.Suspense fallback={<>{fallback}</>}>
+        <Lottie animationData={safeData} loop className={className} />
+      </React.Suspense>
     </LottieBoundary>
   );
 };
