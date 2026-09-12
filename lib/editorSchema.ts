@@ -48,6 +48,14 @@ export interface FieldSpec {
   group?: string;
 }
 
+/** The sidebar groups, in the order they are shown. */
+export const NAV_GROUPS = [
+  { id: 'content', label: 'Content' },
+  { id: 'site', label: 'Site' },
+] as const;
+
+export type NavGroupId = (typeof NAV_GROUPS)[number]['id'];
+
 export interface CollectionSpec {
   /** Key on PortfolioData holding the array. */
   key:
@@ -62,6 +70,14 @@ export interface CollectionSpec {
     | 'stats'
     | 'disciplines';
   label: string;
+  /**
+   * Which sidebar group the dashboard files this collection under.
+   *
+   * Data rather than a lookup table in the shell: a second list of keys
+   * somewhere else is a list that silently goes stale the day a collection is
+   * added, leaving the new section unreachable from the navigation.
+   */
+  group: NavGroupId;
   /** Field shown as the row heading in the collapsed list. */
   titleField: string;
   /** Field whose truthiness shows a "hidden" badge in the list. */
@@ -79,7 +95,8 @@ export interface CollectionSpec {
 export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'projects',
-    label: 'Projects',
+    label: 'Work',
+    group: 'content',
     titleField: 'title',
     slugField: 'slug',
     fields: [
@@ -110,6 +127,7 @@ export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'services',
     label: 'Services',
+    group: 'content',
     titleField: 'title',
     slugField: 'slug',
     publishedField: 'published',
@@ -141,6 +159,7 @@ export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'blogs',
     label: 'Journal',
+    group: 'content',
     titleField: 'title',
     slugField: 'slug',
     publishedField: 'published',
@@ -172,6 +191,7 @@ export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'blogCategories',
     label: 'Journal categories',
+    group: 'content',
     titleField: 'title',
     slugField: 'slug',
     fields: [
@@ -185,6 +205,7 @@ export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'gallery',
     label: 'Gallery',
+    group: 'content',
     titleField: 'caption',
     fields: [
       { key: 'caption', label: 'Caption' },
@@ -196,8 +217,40 @@ export const COLLECTIONS: CollectionSpec[] = [
     ],
   },
   {
+    key: 'process',
+    label: 'Process',
+    group: 'site',
+    titleField: 'title',
+    fields: [
+      { key: 'title', label: 'Title' },
+      { key: 'iconName', label: 'Icon name', help: 'A lucide icon name, e.g. "Target".' },
+      { key: 'description', label: 'Description', kind: 'textarea', rows: 3 },
+    ],
+  },
+  {
+    key: 'tools',
+    label: 'Tools',
+    group: 'site',
+    titleField: 'name',
+    fields: [
+      { key: 'name', label: 'Name' },
+      { key: 'iconName', label: 'Icon name', help: 'A lucide icon name.' },
+    ],
+  },
+  {
+    key: 'social',
+    label: 'Social',
+    group: 'site',
+    titleField: 'label',
+    fields: [
+      { key: 'label', label: 'Label' },
+      { key: 'url', label: 'URL', help: 'Leave empty to show the label without a link.' },
+    ],
+  },
+  {
     key: 'stats',
     label: 'Stats',
+    group: 'site',
     titleField: 'label',
     fields: [
       { key: 'label', label: 'Label', help: 'e.g. "Projects".' },
@@ -208,39 +261,12 @@ export const COLLECTIONS: CollectionSpec[] = [
   {
     key: 'disciplines',
     label: 'Disciplines',
+    group: 'site',
     titleField: 'key',
     fields: [
       { key: 'key', label: 'Name', help: 'The column heading, e.g. "Design".' },
       { key: 'blurb', label: 'Blurb', kind: 'textarea', rows: 2 },
       { key: 'items', label: 'Items', kind: 'list', help: 'One per line.' },
-    ],
-  },
-  {
-    key: 'tools',
-    label: 'Tools',
-    titleField: 'name',
-    fields: [
-      { key: 'name', label: 'Name' },
-      { key: 'iconName', label: 'Icon name', help: 'A lucide icon name.' },
-    ],
-  },
-  {
-    key: 'process',
-    label: 'Process',
-    titleField: 'title',
-    fields: [
-      { key: 'title', label: 'Title' },
-      { key: 'iconName', label: 'Icon name', help: 'A lucide icon name, e.g. "Target".' },
-      { key: 'description', label: 'Description', kind: 'textarea', rows: 3 },
-    ],
-  },
-  {
-    key: 'social',
-    label: 'Social links',
-    titleField: 'label',
-    fields: [
-      { key: 'label', label: 'Label' },
-      { key: 'url', label: 'URL', help: 'Leave empty to show the label without a link.' },
     ],
   },
 ];
