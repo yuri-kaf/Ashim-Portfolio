@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { ScrollProgress } from './components/Motion';
 import { Cursor, PageCurtain } from './components/MotionExtras';
@@ -10,20 +10,51 @@ import { fetchContent } from './services/contentApi';
 import { PortfolioData } from './types';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+
+/**
+ * The landing page is imported eagerly; every other route is a lazy chunk.
+ *
+ * `/` is the page the whole local-search effort points at, so it must not pay
+ * a second network round trip to fetch its own code — bundling it with the
+ * entry keeps its LCP a single request. Everything else is split out, which
+ * takes lottie-react (ServicesPage), react-markdown + remark-gfm (the blog and
+ * service detail pages), the lucide icon set (VibePage's DynamicIcon) and the
+ * entire admin dashboard out of what a first-time visitor downloads.
+ */
 import LandingPage from './pages/LandingPage';
-import WorksPage from './pages/WorksPage';
-import WorkDetailPage from './pages/WorkDetailPage';
-import ServicesPage from './pages/ServicesPage';
-import ServiceDetailPage from './pages/ServiceDetailPage';
-import VibePage from './pages/VibePage';
-import DashboardPage from './pages/DashboardPage';
-import BlogPage from './pages/BlogPage';
-import BlogDetailPage from './pages/BlogDetailPage';
-import BlogCategoryPage from './pages/BlogCategoryPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import GalleryPage from './pages/GalleryPage';
-import NotFoundPage from './pages/NotFoundPage';
+
+const WorksPage = lazy(() => import('./pages/WorksPage'));
+const WorkDetailPage = lazy(() => import('./pages/WorkDetailPage'));
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'));
+const VibePage = lazy(() => import('./pages/VibePage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogDetailPage = lazy(() => import('./pages/BlogDetailPage'));
+const BlogCategoryPage = lazy(() => import('./pages/BlogCategoryPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const GalleryPage = lazy(() => import('./pages/GalleryPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+/**
+ * Shown while a route chunk is in flight.
+ *
+ * It has to be a spacer and nothing else. React replaces the prerendered
+ * crawler markup inside #root the moment it mounts (index.tsx calls
+ * createRoot().render(), not hydrateRoot()), so a fallback carrying its own
+ * copy or a spinner would be the only thing a JS-executing crawler sees for
+ * the length of that fetch — and a spinner is worse than blank, because it
+ * reads as "loading" rather than "nothing here yet". A crawler that executes
+ * JS waits for the network to settle and then sees the real page; one that
+ * does not never runs React at all and keeps the prerendered markup.
+ *
+ * The height keeps the footer below the fold so it does not jump up and back
+ * down, and in practice PageCurtain — a full-viewport ink panel that lifts
+ * over 0.75s on every mount and route change — is painted on top of this, so
+ * the swap is not visible at all on a normal connection.
+ */
+const RouteFallback = () => <div className="min-h-screen" aria-hidden />;
 
 
 const App: React.FC = () => {
@@ -113,7 +144,7 @@ const App: React.FC = () => {
             all mount-triggered, not exit-dependent) still plays normally, and
             PageCurtain above provides the route-change transition — it
             remounts on `key` change without needing an exit callback. */}
-        {routes}
+        <Suspense fallback={<RouteFallback />}>{routes}</Suspense>
       </main>
       <Footer data={data} />
     </div>
