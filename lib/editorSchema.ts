@@ -1,3 +1,5 @@
+import { PortfolioData } from '../types';
+
 export type FieldKind =
   | 'text'
   | 'textarea'
@@ -12,12 +14,26 @@ export type FieldKind =
   /** A list of two-string objects, edited as "first | second" lines. */
   | 'pairs';
 
+/** One choice in a `select`: a stored value and the label shown for it. */
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
 export interface FieldSpec {
   key: string;
   label: string;
   kind?: FieldKind;
   /** For `select`: the only values the field may take. */
   options?: string[];
+  /**
+   * For `select`: take the choices from another collection the user edits
+   * rather than from a fixed list. The stored value is that item's `id`; the
+   * label shown is its collection's `titleField`. Resolved by `selectOptions`.
+   */
+  optionsFrom?: CollectionKey;
+  /** Label for the blank choice an `optionsFrom` select always offers. */
+  emptyLabel?: string;
   rows?: number;
   /**
    * For `pairs`: the two object keys either side of the "|". Defaults to
@@ -136,6 +152,12 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: 'author', label: 'Author', group: 'Post' },
       { key: 'readTime', label: 'Read time', group: 'Post', help: 'Leave blank to estimate from the word count.' },
       { key: 'tags', label: 'Tags', kind: 'list', group: 'Post', help: 'One per line.' },
+      // Without this control there is no way to file a post under a category,
+      // every post stays uncategorised, and the prerenderer — which skips
+      // empty categories — never emits a single category page.
+      { key: 'categoryId', label: 'Category', kind: 'select', optionsFrom: 'blogCategories',
+        emptyLabel: '— No category —', group: 'Post',
+        help: 'Files the post under /blog/category/…. Categories are edited under "Journal categories"; one with no published post gets no page.' },
 
       { key: 'image', label: 'Cover image', kind: 'image', group: 'Media' },
 
@@ -248,4 +270,42 @@ export const groupedFields = (spec: CollectionSpec): Array<[string, FieldSpec[]]
     groups.get(name)!.push(field);
   }
   return [...groups.entries()];
+};
+
+/**
+ * The choices a `select` offers, resolved against the content being edited.
+ *
+ * A static `options` list stays a plain list. An `optionsFrom` field reads the
+ * named collection instead, showing each item's title while storing its id —
+ * so the category dropdown follows whatever categories exist right now.
+ *
+ * A stored value that matches nothing (a category deleted or re-created since
+ * the post was filed) is kept as a labelled choice rather than reset: dropping
+ * it would silently destroy content on the next save.
+ */
+export const selectOptions = (
+  field: FieldSpec,
+  data: PortfolioData | undefined,
+  value: string,
+): SelectOption[] => {
+  if (!field.optionsFrom) {
+    return (field.options ?? []).map((option) => ({ value: option, label: option }));
+  }
+
+  const source = COLLECTIONS.find((spec) => spec.key === field.optionsFrom);
+  const items = (data?.[field.optionsFrom] ?? []) as unknown as Array<Record<string, unknown>>;
+
+  const options: SelectOption[] = [
+    { value: '', label: field.emptyLabel ?? 'None' },
+    ...items.map((item) => ({
+      value: String(item.id ?? ''),
+      label: String((source ? item[source.titleField] : '') ?? '').trim() || 'Untitled',
+    })),
+  ];
+
+  if (value && !options.some((option) => option.value === value)) {
+    options.push({ value, label: `${value} — no longer exists` });
+  }
+
+  return options;
 };

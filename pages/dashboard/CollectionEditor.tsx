@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
-import { CollectionSpec, FieldSpec, emptyItem, groupedFields } from '../../lib/editorSchema';
+import { CollectionSpec, FieldSpec, emptyItem, groupedFields, selectOptions } from '../../lib/editorSchema';
 import { slugify } from '../../lib/slug';
-import { SeoDefaults } from '../../types';
+import { PortfolioData } from '../../types';
 import Field from '../../components/dashboard/Field';
 import ImageField from '../../components/dashboard/ImageField';
 import ImagesField from '../../components/dashboard/ImagesField';
@@ -16,7 +16,11 @@ type Item = Record<string, any>;
 interface CollectionEditorProps {
   spec: CollectionSpec;
   items: Item[];
-  seo: SeoDefaults;
+  /**
+   * The whole draft, not just `seo`: a `select` field may draw its choices from
+   * another collection (the category dropdown reads `blogCategories`).
+   */
+  data: PortfolioData;
   onChange: (items: Item[]) => void;
 }
 
@@ -42,7 +46,7 @@ const textToPairs = (lines: string[], keys: [string, string], idPrefix: string) 
       return { id: `${idPrefix}-${index + 1}`, [keys[0]]: first.trim(), [keys[1]]: second.trim() };
     });
 
-const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, onChange }) => {
+const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, data, onChange }) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
@@ -160,7 +164,8 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
             onChange={(value) => setField(index, item, field, value)}
           />
         );
-      default:
+      default: {
+        const value = String(raw ?? '');
         return (
           <Field
             key={field.key}
@@ -168,14 +173,15 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
             kind={
               field.kind === 'textarea' || field.kind === 'select' ? field.kind : 'text'
             }
-            options={field.options}
+            options={field.kind === 'select' ? selectOptions(field, data, value) : undefined}
             rows={field.rows}
             help={field.help}
             recommendedMax={field.recommendedMax}
-            value={String(raw ?? '')}
-            onChange={(value) => setField(index, item, field, value)}
+            value={value}
+            onChange={(next) => setField(index, item, field, next)}
           />
         );
+      }
     }
   };
 
@@ -305,7 +311,7 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
 
                   {spec.key === 'blogs' && (
                     <SearchPreview
-                      siteUrl={seo.siteUrl}
+                      siteUrl={data.seo.siteUrl}
                       path={`/blog/${item.slug || slugify(String(item.title ?? ''))}`}
                       title={item.seoTitle || item.title || ''}
                       description={item.metaDescription || item.excerpt || ''}

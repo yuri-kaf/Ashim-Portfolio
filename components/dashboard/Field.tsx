@@ -2,11 +2,20 @@ import React from 'react';
 
 export type FieldKind = 'text' | 'textarea' | 'select';
 
+/** A select choice whose stored value differs from the label shown for it. */
+export interface FieldOption {
+  value: string;
+  label: string;
+}
+
+const normalise = (option: string | FieldOption): FieldOption =>
+  typeof option === 'string' ? { value: option, label: option } : option;
+
 interface FieldProps {
   label: string;
   value: string;
   kind?: FieldKind;
-  options?: readonly string[];
+  options?: readonly (string | FieldOption)[];
   rows?: number;
   help?: string;
   /** Soft budget: shows a counter and flags going over, never blocks typing. */
@@ -54,9 +63,9 @@ const Field: React.FC<FieldProps> = ({
         />
       ) : kind === 'select' ? (
         <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+          {options.map(normalise).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
