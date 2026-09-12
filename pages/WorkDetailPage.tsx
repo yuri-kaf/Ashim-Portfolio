@@ -5,6 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 import { PortfolioData } from '../types';
+import NotFoundPage from './NotFoundPage';
 import {
   PageShell,
   Reveal,
@@ -62,32 +63,10 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
   // Wrap around so there is always somewhere to go next.
   const next = projects.length > 1 ? projects[(index + 1) % projects.length] : undefined;
 
-  if (!project) {
-    return (
-      <PageShell className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        title={project.title}
-        description={project.subtitle || project.description}
-        image={project.image}
-        path={`/works/${project.slug}`}
-        type="article"
-        schemaType="CreativeWork"
-      />
-        <div className="text-center">
-          <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--grey-1)]">404</p>
-          <h2 className="display mb-8 text-4xl text-neutral-900 md:text-6xl">Project not found.</h2>
-          <Link
-            to="/works"
-            className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:text-[var(--ink)]"
-          >
-            <ArrowLeft size={14} /> <span className="link-wipe">Back to works</span>
-          </Link>
-        </div>
-      </PageShell>
-    );
-  }
+  // An unknown slug renders the 404 and emits no Seo — the same shape
+  // pages/ServiceDetailPage.tsx and pages/BlogCategoryPage.tsx use. A mistyped
+  // slug must never produce an indexable URL with a canonical of its own.
+  if (!project) return <NotFoundPage />;
 
   const metaItems = [
     { label: 'Client', value: project.client },
@@ -98,6 +77,18 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
+      <Seo
+        defaults={data.seo}
+        data={data}
+        title={project.title}
+        breadcrumbTitle={project.title}
+        description={project.subtitle || project.description}
+        image={project.image}
+        path={`/works/${project.slug}`}
+        type="article"
+        schemaType="CreativeWork"
+      />
+
       {/* ---------- Title block ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-20 pt-36">
         <div className="pointer-events-none absolute -right-40 -top-32 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[130px]" />
