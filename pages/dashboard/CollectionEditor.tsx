@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
-import { CollectionSpec, FieldSpec, emptyItem, groupedFields } from '../../lib/editorSchema';
+import { CollectionSpec, FieldSpec, emptyItem, groupedFields, selectOptions } from '../../lib/editorSchema';
 import { slugify } from '../../lib/slug';
-import { SeoDefaults } from '../../types';
+import { PortfolioData } from '../../types';
 import Field from '../../components/dashboard/Field';
 import ImageField from '../../components/dashboard/ImageField';
 import ImagesField from '../../components/dashboard/ImagesField';
@@ -16,23 +16,37 @@ type Item = Record<string, any>;
 interface CollectionEditorProps {
   spec: CollectionSpec;
   items: Item[];
-  seo: SeoDefaults;
+  /**
+   * The whole draft, not just `seo`: a `select` field may draw its choices from
+   * another collection (the category dropdown reads `blogCategories`).
+   */
+  data: PortfolioData;
   onChange: (items: Item[]) => void;
 }
 
-/** "value | label" lines <-> [{id, value, label}] for the `pairs` kind. */
-const pairsToText = (pairs: Array<{ value?: string; label?: string }> = []) =>
-  pairs.map((pair) => `${pair.value ?? ''} | ${pair.label ?? ''}`);
+/**
+ * "first | second" lines <-> [{id, ...}] for the `pairs` kind.
+ *
+ * Which two keys sit either side of the bar comes from the field spec, so the
+ * same editor serves {value, label} results and {question, answer} FAQs.
+ */
+const DEFAULT_PAIR_KEYS: [string, string] = ['value', 'label'];
 
-const textToPairs = (lines: string[]) =>
+const pairsToText = (pairs: Array<Record<string, unknown>>, keys: [string, string]) =>
+  pairs.map((pair) => `${String(pair[keys[0]] ?? '')} | ${String(pair[keys[1]] ?? '')}`);
+
+const textToPairs = (lines: string[], keys: [string, string], idPrefix: string) =>
   lines
     .filter((line) => line.trim().length > 0)
     .map((line, index) => {
-      const [value = '', label = ''] = line.split('|');
-      return { id: `result-${index + 1}`, value: value.trim(), label: label.trim() };
+      // Split on the first bar only, so an answer may contain one.
+      const bar = line.indexOf('|');
+      const first = bar === -1 ? line : line.slice(0, bar);
+      const second = bar === -1 ? '' : line.slice(bar + 1);
+      return { id: `${idPrefix}-${index + 1}`, [keys[0]]: first.trim(), [keys[1]]: second.trim() };
     });
 
-const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, onChange }) => {
+const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, data, onChange }) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
@@ -128,16 +142,18 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
             onChange={(value) => setField(index, item, field, value)}
           />
         );
-      case 'pairs':
+      case 'pairs': {
+        const keys = field.pairKeys ?? DEFAULT_PAIR_KEYS;
         return (
           <ListField
             key={field.key}
             label={field.label}
             help={field.help}
-            value={pairsToText(Array.isArray(raw) ? raw : [])}
-            onChange={(lines) => setField(index, item, field, textToPairs(lines))}
+            value={pairsToText(Array.isArray(raw) ? raw : [], keys)}
+            onChange={(lines) => setField(index, item, field, textToPairs(lines, keys, field.key))}
           />
         );
+      }
       case 'toggle':
         return (
           <ToggleField
@@ -148,19 +164,24 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
             onChange={(value) => setField(index, item, field, value)}
           />
         );
-      default:
+      default: {
+        const value = String(raw ?? '');
         return (
           <Field
             key={field.key}
             label={field.label}
-            kind={field.kind === 'textarea' ? 'textarea' : 'text'}
+            kind={
+              field.kind === 'textarea' || field.kind === 'select' ? field.kind : 'text'
+            }
+            options={field.kind === 'select' ? selectOptions(field, data, value) : undefined}
             rows={field.rows}
             help={field.help}
             recommendedMax={field.recommendedMax}
-            value={String(raw ?? '')}
-            onChange={(value) => setField(index, item, field, value)}
+            value={value}
+            onChange={(next) => setField(index, item, field, next)}
           />
         );
+      }
     }
   };
 
@@ -168,7 +189,11 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
     if (!spec.slugField) return null;
     const slug = String(item[spec.slugField] ?? '') || slugify(String(item[spec.titleField] ?? ''));
     if (!slug) return null;
-    return spec.key === 'blogs' ? `/blog/${slug}` : `/works/${slug}`;
+    if (spec.key === 'blogs') return `/blog/${slug}`;
+    if (spec.key === 'blogCategories') return `/blog/category/${slug}`;
+    // A pointer service has no page here; its link belongs to Limi Creatives.
+    if (spec.key === 'services') return item.mode === 'pointer' ? null : `/services/${slug}`;
+    return `/works/${slug}`;
   };
 
   return (
@@ -286,7 +311,7 @@ const CollectionEditor: React.FC<CollectionEditorProps> = ({ spec, items, seo, o
 
                   {spec.key === 'blogs' && (
                     <SearchPreview
-                      siteUrl={seo.siteUrl}
+                      siteUrl={data.seo.siteUrl}
                       path={`/blog/${item.slug || slugify(String(item.title ?? ''))}`}
                       title={item.seoTitle || item.title || ''}
                       description={item.metaDescription || item.excerpt || ''}

@@ -215,7 +215,51 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ draft, patch }) => (
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
+        <p className="mono bracket mb-4 text-[var(--grey-1)]">Where you work</p>
+        <p className="mono mb-5 text-[var(--grey-2)]">
+          Drives the local-search signals: your Person and Service schema, the contact page
+          title, and the about and contact headings.
+        </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Field
+            label="City"
+            value={draft.seo.geo.city}
+            help='e.g. "Kathmandu". Used wherever the site names where you are.'
+            onChange={(city) =>
+              patch({ seo: { ...draft.seo, geo: { ...draft.seo.geo, city } } })
+            }
+          />
+          <Field
+            label="Region"
+            value={draft.seo.geo.region}
+            help='State or province, e.g. "Bagmati Province".'
+            onChange={(region) =>
+              patch({ seo: { ...draft.seo, geo: { ...draft.seo.geo, region } } })
+            }
+          />
+          <Field
+            label="Country code"
+            value={draft.seo.geo.country}
+            help='Two-letter ISO 3166-1 country code — Nepal is "NP", not "Nepal".'
+            onChange={(country) =>
+              patch({ seo: { ...draft.seo, geo: { ...draft.seo.geo, country } } })
+            }
+          />
+        </div>
+        <div className="mt-6">
+          <ListField
+            label="Areas served"
+            help="One per line, e.g. Kathmandu, Lalitpur, Nepal. Listed as the area your services cover."
+            value={draft.seo.geo.areaServed}
+            onChange={(areaServed) =>
+              patch({ seo: { ...draft.seo, geo: { ...draft.seo.geo, areaServed } } })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="mt-8">
         <SearchPreview
           siteUrl={draft.seo.siteUrl}
           path="/"

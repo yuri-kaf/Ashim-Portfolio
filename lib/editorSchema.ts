@@ -1,3 +1,5 @@
+import { PortfolioData } from '../types';
+
 export type FieldKind =
   | 'text'
   | 'textarea'
@@ -6,14 +8,38 @@ export type FieldKind =
   | 'list'
   | 'images'
   | 'toggle'
-  /** A list of {value, label} objects, edited as "value | label" lines. */
+  /** A dropdown constrained to `options`. Free text where only a fixed set of
+   *  values is meaningful is a typo waiting to change behaviour. */
+  | 'select'
+  /** A list of two-string objects, edited as "first | second" lines. */
   | 'pairs';
+
+/** One choice in a `select`: a stored value and the label shown for it. */
+export interface SelectOption {
+  value: string;
+  label: string;
+}
 
 export interface FieldSpec {
   key: string;
   label: string;
   kind?: FieldKind;
+  /** For `select`: the only values the field may take. */
+  options?: string[];
+  /**
+   * For `select`: take the choices from another collection the user edits
+   * rather than from a fixed list. The stored value is that item's `id`; the
+   * label shown is its collection's `titleField`. Resolved by `selectOptions`.
+   */
+  optionsFrom?: CollectionKey;
+  /** Label for the blank choice an `optionsFrom` select always offers. */
+  emptyLabel?: string;
   rows?: number;
+  /**
+   * For `pairs`: the two object keys either side of the "|". Defaults to
+   * {value, label} — FAQs, for instance, override it to {question, answer}.
+   */
+  pairKeys?: [string, string];
   /** Shown under the input — used for SEO guidance and format hints. */
   help?: string;
   /** Soft character budget; the editor shows a counter and warns past it. */
@@ -24,7 +50,17 @@ export interface FieldSpec {
 
 export interface CollectionSpec {
   /** Key on PortfolioData holding the array. */
-  key: 'projects' | 'services' | 'blogs' | 'gallery' | 'tools' | 'process' | 'social' | 'stats' | 'disciplines';
+  key:
+    | 'projects'
+    | 'services'
+    | 'blogs'
+    | 'blogCategories'
+    | 'gallery'
+    | 'tools'
+    | 'process'
+    | 'social'
+    | 'stats'
+    | 'disciplines';
   label: string;
   /** Field shown as the row heading in the collapsed list. */
   titleField: string;
@@ -75,13 +111,31 @@ export const COLLECTIONS: CollectionSpec[] = [
     key: 'services',
     label: 'Services',
     titleField: 'title',
+    slugField: 'slug',
+    publishedField: 'published',
     fields: [
       { key: 'title', label: 'Title' },
+      { key: 'slug', label: 'URL slug', help: 'Becomes /services/<slug>. Changing it breaks existing links.' },
+      // A dropdown, not free text. `lib/sanitize.ts` treats anything that is
+      // not exactly "pointer" as "page", so typing "Pointer" here used to
+      // silently publish a competing page on this domain for a service
+      // limicreatives.com already ranks for.
+      { key: 'mode', label: 'Mode', kind: 'select', options: ['page', 'pointer'],
+        help: '"page" builds a page here. "pointer" links out to Limi Creatives instead — use it for any service limicreatives.com already has a page for.' },
+      { key: 'externalUrl', label: 'Points to', help: 'Required when mode is "pointer".' },
       { key: 'icon', label: 'Icon name', help: 'A lucide icon name, e.g. "Palette".' },
       { key: 'startingAt', label: 'Starting price', help: 'Optional anchor, e.g. "from $2,000".' },
       { key: 'image', label: 'Image', kind: 'image' },
       { key: 'description', label: 'Description', kind: 'textarea', rows: 3 },
       { key: 'deliverables', label: 'Deliverables', kind: 'list', help: 'One per line. Shown on the services page.' },
+      { key: 'body', label: 'Page body', kind: 'markdown', rows: 18, group: 'Content',
+        help: 'Aim for 600+ words. This is what actually ranks.' },
+      { key: 'seoTitle', label: 'SEO title', recommendedMax: 60, group: 'SEO',
+        help: 'Include the service and the location, e.g. "Web Design & UI/UX in Nepal".' },
+      { key: 'metaDescription', label: 'Meta description', kind: 'textarea', recommendedMax: 160, group: 'SEO' },
+      { key: 'faqs', label: 'FAQs', kind: 'pairs', rows: 8, group: 'SEO', pairKeys: ['question', 'answer'],
+        help: 'One per line as "question | answer". Emitted as FAQPage schema.' },
+      { key: 'published', label: 'Published', kind: 'toggle' },
     ],
   },
   {
@@ -98,6 +152,12 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: 'author', label: 'Author', group: 'Post' },
       { key: 'readTime', label: 'Read time', group: 'Post', help: 'Leave blank to estimate from the word count.' },
       { key: 'tags', label: 'Tags', kind: 'list', group: 'Post', help: 'One per line.' },
+      // Without this control there is no way to file a post under a category,
+      // every post stays uncategorised, and the prerenderer — which skips
+      // empty categories — never emits a single category page.
+      { key: 'categoryId', label: 'Category', kind: 'select', optionsFrom: 'blogCategories',
+        emptyLabel: '— No category —', group: 'Post',
+        help: 'Files the post under /blog/category/…. Categories are edited under "Journal categories"; one with no published post gets no page.' },
 
       { key: 'image', label: 'Cover image', kind: 'image', group: 'Media' },
 
@@ -107,6 +167,19 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: 'seoTitle', label: 'SEO title', group: 'Search', recommendedMax: 60, help: 'Overrides the browser tab and search result title. Falls back to the post title.' },
       { key: 'metaDescription', label: 'Meta description', kind: 'textarea', rows: 3, group: 'Search', recommendedMax: 160, help: 'The grey text under your link in search results. Falls back to the excerpt.' },
       { key: 'ogImage', label: 'Social share image', kind: 'image', group: 'Search', help: 'Shown when the link is shared. Falls back to the cover image.' },
+    ],
+  },
+  {
+    key: 'blogCategories',
+    label: 'Journal categories',
+    titleField: 'title',
+    slugField: 'slug',
+    fields: [
+      { key: 'title', label: 'Title', help: 'e.g. "The Nepal Market".' },
+      { key: 'slug', label: 'URL slug', help: 'Appears as /blog/category/your-slug. Leave blank to generate from the title.' },
+      { key: 'description', label: 'Description', kind: 'textarea', rows: 3, recommendedMax: 200, help: 'Intro paragraph on the category page. Used as the meta description when none is set.' },
+      { key: 'seoTitle', label: 'SEO title', recommendedMax: 60, group: 'Search' },
+      { key: 'metaDescription', label: 'Meta description', kind: 'textarea', rows: 3, recommendedMax: 160, group: 'Search' },
     ],
   },
   {
@@ -178,6 +251,9 @@ export const emptyItem = (spec: CollectionSpec): Record<string, unknown> => {
   for (const field of spec.fields) {
     if (field.kind === 'list' || field.kind === 'images' || field.kind === 'pairs') item[field.key] = [];
     else if (field.kind === 'toggle') item[field.key] = field.key === 'published';
+    // A select starts on its first option rather than on '', so the value the
+    // dropdown displays is the value that gets saved.
+    else if (field.kind === 'select') item[field.key] = field.options?.[0] ?? '';
     else item[field.key] = '';
   }
   return item;
@@ -194,4 +270,42 @@ export const groupedFields = (spec: CollectionSpec): Array<[string, FieldSpec[]]
     groups.get(name)!.push(field);
   }
   return [...groups.entries()];
+};
+
+/**
+ * The choices a `select` offers, resolved against the content being edited.
+ *
+ * A static `options` list stays a plain list. An `optionsFrom` field reads the
+ * named collection instead, showing each item's title while storing its id —
+ * so the category dropdown follows whatever categories exist right now.
+ *
+ * A stored value that matches nothing (a category deleted or re-created since
+ * the post was filed) is kept as a labelled choice rather than reset: dropping
+ * it would silently destroy content on the next save.
+ */
+export const selectOptions = (
+  field: FieldSpec,
+  data: PortfolioData | undefined,
+  value: string,
+): SelectOption[] => {
+  if (!field.optionsFrom) {
+    return (field.options ?? []).map((option) => ({ value: option, label: option }));
+  }
+
+  const source = COLLECTIONS.find((spec) => spec.key === field.optionsFrom);
+  const items = (data?.[field.optionsFrom] ?? []) as unknown as Array<Record<string, unknown>>;
+
+  const options: SelectOption[] = [
+    { value: '', label: field.emptyLabel ?? 'None' },
+    ...items.map((item) => ({
+      value: String(item.id ?? ''),
+      label: String((source ? item[source.titleField] : '') ?? '').trim() || 'Untitled',
+    })),
+  ];
+
+  if (value && !options.some((option) => option.value === value)) {
+    options.push({ value, label: `${value} — no longer exists` });
+  }
+
+  return options;
 };

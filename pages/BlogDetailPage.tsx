@@ -31,6 +31,13 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
   // be indexed.
   const isDraft = !post.published;
 
+  // The category the post is filed under, if it still exists — a post whose
+  // category was deleted keeps its id, so this can legitimately come back
+  // empty and the byline simply omits the link.
+  const category = (data?.blogCategories ?? []).find(
+    (entry) => entry && entry.id === post.categoryId,
+  );
+
   const published = posts.filter((entry) => entry.published && entry.id !== post.id);
   const next = published[0];
   const readTime = post.readTime?.trim() || estimateReadTime(post.content);
@@ -39,13 +46,15 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
     <PageShell className="min-h-screen bg-[var(--paper)]">
       <Seo
         defaults={data.seo}
+        data={data}
         title={post.seoTitle?.trim() || post.title}
+        breadcrumbTitle={post.title}
         description={post.metaDescription?.trim() || post.excerpt}
         image={post.ogImage?.trim() || post.image}
         path={`/blog/${post.slug}`}
         type="article"
+        schemaType="BlogPosting"
         publishedTime={post.date}
-        author={post.author || data.name}
         tags={post.tags}
         noindex={isDraft}
       />
@@ -78,6 +87,17 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
                 <>
                   <span className="text-[var(--grey-2)]">·</span>
                   <span>{post.author}</span>
+                </>
+              )}
+              {category && (
+                <>
+                  <span className="text-[var(--grey-2)]">·</span>
+                  <Link
+                    to={`/blog/category/${category.slug}`}
+                    className="link-wipe text-[var(--ink)]"
+                  >
+                    {category.title}
+                  </Link>
                 </>
               )}
             </div>

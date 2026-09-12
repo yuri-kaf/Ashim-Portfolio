@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Seo from '../components/Seo';
+import { homeTitle } from '../lib/titles';
 import { Link } from 'react-router-dom';
 import {
   motion,
@@ -642,7 +643,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
 
   return (
     <div className="bg-[var(--paper)]">
-      <Seo defaults={data.seo} path="/" description={data.tagline} />
+      <Seo
+        defaults={data.seo}
+        data={data}
+        path="/"
+        exactTitle={homeTitle(data)}
+        description={data.tagline}
+      />
       <Hero data={data} />
       <Ticker items={ticker} />
       <Disciplines disciplines={disciplines} />

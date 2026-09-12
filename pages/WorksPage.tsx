@@ -164,7 +164,7 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo defaults={data.seo} title="Work" path="/works" description={data.pageIntros.works} />
+      <Seo defaults={data.seo} data={data} title="Work" path="/works" description={data.pageIntros.works} />
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-40">
         <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[120px]" />
@@ -176,8 +176,8 @@ const WorksPage: React.FC<WorksPageProps> = ({ data }) => {
 
           <SplitText
             as="h1"
-            text="Selected cases."
-            accent={['cases.']}
+            text="Design & Marketing Work from Nepal."
+            accent={['Nepal.']}
             className="display mb-12 text-[3.5rem] text-neutral-900 md:text-[8.5rem]"
           />
 
