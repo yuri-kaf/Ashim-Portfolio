@@ -49,3 +49,20 @@ export const aboutTitle = (data: PortfolioData): string => {
   const company = data.company?.name?.trim();
   return role && company ? `${data.name} — ${role} of ${company}` : homeTitle(data);
 };
+
+/**
+ * "Contact — Web Designer in Kathmandu" (35 chars).
+ *
+ * `Contact ${name}` plus the " | Ashim Kafle" suffix shipped "Contact Ashim
+ * Kafle | Ashim Kafle" — the name twice and not one word of local intent on
+ * the page a local search is most likely to land on. The city carries the
+ * query instead, and it matches the page's own h1 ("Hire a web designer in
+ * Kathmandu."), so the title promises nothing the page does not say.
+ *
+ * Falls back to the plain "Contact" title when no city is configured — never
+ * to a title asserting a location the data does not carry.
+ */
+export const contactTitle = (data: PortfolioData): string => {
+  const city = data.seo?.geo?.city?.trim() || data.contact?.location?.trim();
+  return city ? `Contact — Web Designer in ${city}` : 'Contact';
+};

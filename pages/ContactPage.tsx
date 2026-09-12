@@ -4,6 +4,7 @@ import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { ownedServices } from '../lib/services';
+import { contactTitle } from '../lib/titles';
 import Seo from '../components/Seo';
 import Breadcrumbs from '../components/Breadcrumbs';
 import {
@@ -49,7 +50,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ data }) => {
       <Seo
         defaults={data.seo}
         data={data}
-        title={`Contact ${name}`}
+        exactTitle={contactTitle(data)}
         breadcrumbTitle="Contact"
         // No email address in the description — see scripts/prerender.mjs.
         // The visible mailto: link below is how a human gets in touch.

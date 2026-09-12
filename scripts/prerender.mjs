@@ -158,7 +158,7 @@ const injectHead = (html, tags) => html.replace('</head>', `${tags.join('\n    '
 const run = async () => {
   const template = await readFile(join(DIST, 'index.html'), 'utf8');
   const app = await loadAppModule();
-  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices, isSubstantialProject, composeTitle, homeTitle, aboutTitle } = app;
+  const { buildGraph, absolute, canonicalPath, STATIC_ROUTES, ownedServices, pointerServices, isSubstantialProject, composeTitle, homeTitle, aboutTitle, contactTitle } = app;
   const { data, source } = await loadContent(app);
   const seo = data.seo;
   const urls = [];
@@ -325,7 +325,9 @@ const run = async () => {
     },
     {
       path: '/contact',
-      title: `Contact ${data.name}`,
+      // "Contact Ashim Kafle" + " | Ashim Kafle" put the name twice and no
+      // local intent at all. See lib/titles.ts.
+      exactTitle: contactTitle(data),
       breadcrumbTitle: 'Contact',
       // No email address here. A meta description is served to every crawler
       // and scraper that touches the page, which makes it the easiest possible
