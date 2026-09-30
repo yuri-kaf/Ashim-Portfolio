@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { PortfolioData } from '../types';
 import Seo from '../components/Seo';
+import { categoryMeta } from '../lib/pageMeta';
+import { liveCategories, livePosts } from '../lib/posts';
 import Breadcrumbs from '../components/Breadcrumbs';
 import EditorialCard from '../components/EditorialCard';
 import {
@@ -25,28 +27,22 @@ interface BlogCategoryPageProps {
  */
 const BlogCategoryPage: React.FC<BlogCategoryPageProps> = ({ data }) => {
   const { slug } = useParams<{ slug: string }>();
-  const categories = useMemo(() => (data?.blogCategories ?? []).filter(Boolean), [data?.blogCategories]);
+  // Only categories with something published in them resolve — the same
+  // rule api/page.ts answers 404 by, so the browser and the crawler agree on
+  // which category pages exist.
+  const categories = useMemo(() => liveCategories(data), [data]);
 
   const category = categories.find((entry) => entry.slug === slug);
 
   if (!category) return <NotFoundPage />;
 
-  const posts = (data?.blogs ?? []).filter(
-    (post) => post && post.categoryId === category.id && post.published !== false,
-  );
+  const posts = livePosts(data).filter((post) => post.categoryId === category.id);
 
   const siblings = categories.filter((entry) => entry.id !== category.id);
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        title={category.seoTitle?.trim() || category.title}
-        breadcrumbTitle={category.title}
-        description={category.metaDescription?.trim() || category.description}
-        path={`/blog/category/${category.slug}`}
-      />
+      <Seo defaults={data.seo} data={data} {...categoryMeta(category, data)} />
 
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-32 md:pt-40">

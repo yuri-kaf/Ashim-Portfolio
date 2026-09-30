@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
+import { hubMeta } from '../lib/pageMeta';
 import React, { useState, useEffect } from 'react';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { motion, useReducedMotion } from 'motion/react';
@@ -17,6 +18,7 @@ import {
   EASE,
 } from '../components/Motion';
 import EditorialCard from '../components/EditorialCard';
+import { liveCategories, livePosts } from '../lib/posts';
 
 interface BlogPageProps {
   data: PortfolioData;
@@ -36,9 +38,23 @@ const Meta: React.FC<{ blog: Blog; light?: boolean }> = ({ blog, light }) => (
   </div>
 );
 
+/**
+ * Stands in for a cover image a post does not have. An <img src=""> is a
+ * broken-image icon in some browsers and a request for the page itself in
+ * others; the title set large on ink is what the site's own covers look like.
+ */
+const TitlePlate: React.FC<{ title: string }> = ({ title }) => (
+  <div className="absolute inset-0 flex items-end bg-[var(--ink)] p-8 md:p-10">
+    <span className="display line-clamp-4 text-3xl leading-[1.05] text-[var(--paper)] md:text-5xl">
+      {title}
+    </span>
+  </div>
+);
+
 const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
-  // Drafts are reachable by direct link for previewing, never listed.
-  const blogs = (data?.blogs || []).filter(Boolean).filter((entry) => entry.published);
+  // Drafts are reachable by direct link for previewing, never listed. Newest
+  // first, whatever order they were entered in.
+  const blogs = livePosts(data);
   const email = data?.contact?.email || DEFAULT_DATA.contact.email;
   const reduced = useReducedMotion();
 
@@ -47,14 +63,12 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
   // Only categories with something published in them, matching the rule the
   // prerenderer uses to decide which category pages exist at all — a chip
   // pointing at a page that was never built is a link to a 404.
-  const categories = (data?.blogCategories || [])
-    .filter(Boolean)
-    .filter((category) => blogs.some((post) => post.categoryId === category.id));
+  const categories = liveCategories(data);
 
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo defaults={data.seo} data={data} title="Journal" path="/blog" description={data.pageIntros.blog} />
+      <Seo defaults={data.seo} data={data} {...hubMeta(data, 'blog')} />
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-40">
         <div className="pointer-events-none absolute -left-32 -top-32 h-[520px] w-[520px] animate-drift rounded-full bg-[var(--ink)]/[0.04] blur-[120px]" />
@@ -66,15 +80,15 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
 
           <SplitText
             as="h1"
-            text="Latest insights."
-            accent={['insights.']}
+            text="Design & marketing notes from Nepal."
+            accent={['Nepal.']}
             className="display mb-12 text-[3.5rem] text-neutral-900 md:text-[8rem]"
           />
 
           <Reveal delay={0.3} className="max-w-2xl">
             <p className="text-lg font-light leading-relaxed text-neutral-500 md:text-xl">
-              Thoughts on design trends, industry shifts, and the evolving relationship between
-              humans and the machines they design for.
+              {data.pageIntros?.blog ||
+                'Notes on web design, UI/UX and digital marketing for businesses in Nepal.'}
             </p>
           </Reveal>
 
@@ -114,14 +128,18 @@ const BlogPage: React.FC<BlogPageProps> = ({ data }) => {
               <Link to={`/blog/${featured.slug}`} className="group block w-full text-left">
                 <div className="grid gap-0 border-t border-[var(--ink)] lg:grid-cols-2">
                   <div className="relative aspect-[16/11] overflow-hidden bg-neutral-200">
-                    <Parallax offset={-20} className="absolute inset-[-10%]">
-                      <img
-                        src={featured.image}
-                        alt={featured.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover grayscale transition-all duration-[1.2s] group-hover:scale-[1.04] group-hover:grayscale-0"
-                      />
-                    </Parallax>
+                    {featured.image ? (
+                      <Parallax offset={-20} className="absolute inset-[-10%]">
+                        <img
+                          src={featured.image}
+                          alt={featured.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover grayscale transition-all duration-[1.2s] group-hover:scale-[1.04] group-hover:grayscale-0"
+                        />
+                      </Parallax>
+                    ) : (
+                      <TitlePlate title={featured.title} />
+                    )}
                     <span className="mono absolute left-4 top-4 text-white mix-blend-difference">
                       01
                     </span>

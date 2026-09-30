@@ -2,9 +2,12 @@ import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { PortfolioData } from '../types';
+import { findPost, relatedPosts } from '../lib/posts';
+import { ownedServices } from '../lib/services';
 import { PageShell, Reveal } from '../components/Motion';
 import Markdown from '../components/Markdown';
 import Seo from '../components/Seo';
+import { postMeta } from '../lib/pageMeta';
 import NotFoundPage from './NotFoundPage';
 
 interface BlogDetailPageProps {
@@ -19,11 +22,10 @@ const estimateReadTime = (content: string): string => {
 
 const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
   const { slug } = useParams<{ slug: string }>();
-  const posts = useMemo(() => (data?.blogs ?? []).filter(Boolean), [data?.blogs]);
 
   // Matched on slug, falling back to id so links shared before slugs existed
-  // still resolve.
-  const post = posts.find((entry) => entry.slug === slug) ?? posts.find((entry) => entry.id === slug);
+  // still resolve. lib/posts.ts is what api/page.ts resolves with too.
+  const post = useMemo(() => findPost(data, slug), [data, slug]);
 
   if (!post) return <NotFoundPage />;
 
@@ -38,26 +40,15 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
     (entry) => entry && entry.id === post.categoryId,
   );
 
-  const published = posts.filter((entry) => entry.published && entry.id !== post.id);
-  const next = published[0];
+  // Same topic first, then the newest of the rest — thin placeholders left
+  // out. A single "read next" link was the only way on from a post.
+  const related = relatedPosts(data, post);
+  const services = ownedServices(data);
   const readTime = post.readTime?.trim() || estimateReadTime(post.content);
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        title={post.seoTitle?.trim() || post.title}
-        breadcrumbTitle={post.title}
-        description={post.metaDescription?.trim() || post.excerpt}
-        image={post.ogImage?.trim() || post.image}
-        path={`/blog/${post.slug}`}
-        type="article"
-        schemaType="BlogPosting"
-        publishedTime={post.date}
-        tags={post.tags}
-        noindex={isDraft}
-      />
+      <Seo defaults={data.seo} data={data} {...postMeta(post, data)} />
 
       <article data-nav-theme="light" className="px-5 pb-24 pt-32 md:px-10 md:pt-40">
         <div className="mx-auto max-w-[760px]">
@@ -143,18 +134,67 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ data }) => {
             <p className="mono text-[var(--grey-2)]">This post has no body yet.</p>
           )}
 
-          {next && (
-            <div className="mt-20 border-t border-[var(--hairline)] pt-10">
-              <p className="mono mb-4 text-[var(--grey-1)]">Read next</p>
-              <Link to={`/blog/${next.slug}`} className="group flex items-center justify-between gap-6">
-                <span className="display text-2xl md:text-3xl">{next.title}</span>
-                <ArrowRight
-                  size={22}
-                  className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
-                />
+          {/* Who wrote it, with a link to the page that says so at length —
+              the author signal Google looks for on advice content. */}
+          <aside className="mt-20 border-t border-[var(--hairline)] pt-10">
+            <p className="mono mb-4 text-[var(--grey-1)]">Written by</p>
+            <p className="display mb-3 text-2xl md:text-3xl">
+              <Link to="/about" rel="author" className="link-wipe">
+                {post.author?.trim() || data.name}
               </Link>
+            </p>
+            <p className="max-w-[600px] text-base font-light leading-relaxed text-[var(--grey-1)]">
+              {data.role}
+              {data.contact?.location ? ` in ${data.contact.location}` : ''}
+              {data.company?.name ? `, and ${data.company.role} of ${data.company.name}.` : '.'}{' '}
+              {data.heroIntro}
+            </p>
+          </aside>
+
+          {related.length > 0 && (
+            <div className="mt-16 border-t border-[var(--hairline)] pt-10">
+              <p className="mono mb-6 text-[var(--grey-1)]">Keep reading</p>
+              <div className="border-t border-[var(--ink)]">
+                {related.map((entry) => (
+                  <Link
+                    key={entry.id}
+                    to={`/blog/${entry.slug}`}
+                    className="group flex items-center justify-between gap-6 border-b border-[var(--hairline)] py-6"
+                  >
+                    <span className="display text-xl md:text-2xl">{entry.title}</span>
+                    <ArrowRight
+                      size={20}
+                      className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
+
+          <div className="mt-16 rounded-3xl bg-[var(--ink)] p-8 text-[var(--paper)] md:p-12">
+            <p className="mono mb-4 text-white/60">Work with me</p>
+            <p className="display mb-8 text-2xl leading-tight md:text-4xl">
+              Need this done for your business?
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {services.map((service) => (
+                <Link
+                  key={service.id}
+                  to={`/services/${service.slug}`}
+                  className="mono rounded-full border border-white/25 px-5 py-3 transition-colors duration-300 hover:bg-white hover:text-[var(--ink)]"
+                >
+                  {service.title}
+                </Link>
+              ))}
+              <Link
+                to="/contact"
+                className="mono inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[var(--ink)]"
+              >
+                Get in touch <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
         </div>
       </article>
     </PageShell>
