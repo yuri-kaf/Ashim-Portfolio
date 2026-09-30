@@ -1,13 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { INITIAL_DATA } from '../constants';
-import { TITLE_LIMIT, aboutTitle, composeTitle, contactTitle, homeTitle } from './titles';
+import { TITLE_LIMIT, aboutTitle, composeTitle, contactTitle, homeTitle, hubTitles } from './titles';
 
 const seo = INITIAL_DATA.seo;
 
 describe('titles', () => {
   it('never ships a bare site name as the home title', () => {
-    expect(homeTitle(INITIAL_DATA)).toBe('Ashim Kafle — Product Designer & Digital Marketer');
+    expect(homeTitle(INITIAL_DATA)).toBe('Ashim Kafle — Product Designer & Digital Marketer in Nepal');
     expect(homeTitle(INITIAL_DATA)).not.toBe(seo.siteName);
+  });
+
+  it('puts the country in the home title only when it fits', () => {
+    const long = { ...INITIAL_DATA, role: 'Senior Product Designer & Performance Marketer' };
+    expect(homeTitle(long)).toBe('Ashim Kafle — Senior Product Designer & Performance Marketer');
+    const nowhere = { ...INITIAL_DATA, seo: { ...INITIAL_DATA.seo, geo: { ...INITIAL_DATA.seo.geo, country: '' } } };
+    expect(homeTitle(nowhere)).toBe('Ashim Kafle — Product Designer & Digital Marketer');
+  });
+
+  it('names the hubs for what people search, not for the nav label', () => {
+    const hubs = hubTitles(INITIAL_DATA);
+    expect(hubs.services.exactTitle).toBe('Web Design, UI/UX & Branding Services in Nepal');
+    expect(composeTitle(seo, hubs.blog.title)).toBe('Web Design & Digital Marketing Blog | Ashim Kafle');
+    for (const hub of Object.values(hubs)) {
+      expect(composeTitle(seo, hub.title, hub.exactTitle).length).toBeLessThanOrEqual(TITLE_LIMIT);
+    }
   });
 
   it('names the founder role on /about instead of the name twice', () => {
@@ -44,8 +60,14 @@ describe('titles', () => {
   it('emits an exact title verbatim and suffixes everything else', () => {
     expect(composeTitle(seo, 'Services')).toBe('Services | Ashim Kafle');
     expect(composeTitle(seo, 'Services', homeTitle(INITIAL_DATA)))
-      .toBe('Ashim Kafle — Product Designer & Digital Marketer');
+      .toBe('Ashim Kafle — Product Designer & Digital Marketer in Nepal');
     expect(composeTitle(seo, '', '  ')).toBe(seo.siteName);
+  });
+
+  it('drops the suffix rather than push a long title past the SERP budget', () => {
+    const long = 'UI/UX Design Cost in Nepal: Pricing, When You Need It & Why It Matters';
+    expect(composeTitle(seo, long)).toBe(long);
+    expect(composeTitle(seo, 'UI/UX Design Cost in Nepal')).toBe('UI/UX Design Cost in Nepal | Ashim Kafle');
   });
 
   it('falls back rather than inventing a role the data does not carry', () => {
