@@ -4,8 +4,8 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import Seo from '../components/Seo';
+import { aboutMeta } from '../lib/pageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { aboutTitle } from '../lib/titles';
 import {
   PageShell,
   Reveal,
@@ -44,14 +44,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        exactTitle={aboutTitle(data)}
-        breadcrumbTitle="About"
-        description={`${heroIntro} ${company.role} at ${company.name}, based in ${location}.`}
-        path="/about"
-      />
+      <Seo defaults={data.seo} data={data} {...aboutMeta(data)} />
 
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-32 md:pt-40">
