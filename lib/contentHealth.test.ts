@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { INITIAL_DATA } from '../constants';
 import { PortfolioData } from '../types';
 import { PROJECT_CONTENT_MINIMUM } from './projects';
+import { POST_CONTENT_MINIMUM } from './posts';
 import { contentIssues } from './contentHealth';
 
 /** Enough prose to clear the indexing threshold, so a fixture project is not
@@ -101,7 +102,20 @@ describe('contentIssues', () => {
       published: true,
       categoryId: 'c1',
       metaDescription: 'A perfectly ordinary description of the post.',
+      // Long enough to be indexed, so a fixture is not flagged as thin unless
+      // the test means it to be.
+      content: 'x'.repeat(POST_CONTENT_MINIMUM),
       ...extra,
+    });
+
+    it('blocks a published post too thin to be indexed', () => {
+      const data = clean({
+        blogCategories: [category],
+        blogs: [post({ content: 'Red has always been a color of passion, urgency, and power...' })],
+      } as unknown as Partial<PortfolioData>);
+      const blocking = contentIssues(data).filter((i) => i.severity === 'blocking');
+      expect(blocking.map((i) => i.id)).toEqual(['post-thin:p1']);
+      expect(blocking[0].message).toContain('not indexed');
     });
 
     it('blocks a published post with no category', () => {
