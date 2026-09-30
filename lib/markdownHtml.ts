@@ -11,6 +11,11 @@
  * only ever wrap text in tags this file wrote itself.
  */
 
+import { isMostlyDevanagari } from './lang.js';
+
+/** ` lang="ne"` on a block that is mostly Nepali, nothing otherwise. */
+const langAttr = (raw: string): string => (isMostlyDevanagari(raw) ? ' lang="ne"' : '');
+
 export const escapeHtml = (value: unknown = ''): string =>
   String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -66,7 +71,7 @@ export const markdownToHtml = (markdown = '', demote = 1): string =>
       const heading = /^(#{1,6})\s+(.*)$/.exec(body);
       if (heading && lines.length === 1) {
         const level = Math.min(Math.max(heading[1].length + demote, 2), 6);
-        return `<h${level}>${text(heading[2])}</h${level}>`;
+        return `<h${level}${langAttr(heading[2])}>${text(heading[2])}</h${level}>`;
       }
       if (/^(-{3,}|\*{3,})$/.test(body)) return '<hr>';
       if (lines.length >= 2 && isTableRow(lines[0]) && isTableDivider(lines[1])) {
@@ -74,7 +79,10 @@ export const markdownToHtml = (markdown = '', demote = 1): string =>
       }
       if (lines.every((line) => /^\s*[-*]\s+/.test(line))) {
         return `<ul>${lines
-          .map((line) => `<li>${text(line.replace(/^\s*[-*]\s+/, ''))}</li>`)
+          .map((line) => {
+            const item = line.replace(/^\s*[-*]\s+/, '');
+            return `<li${langAttr(item)}>${text(item)}</li>`;
+          })
           .join('')}</ul>`;
       }
       if (lines.every((line) => /^\s*\d+[.)]\s+/.test(line))) {
@@ -90,7 +98,8 @@ export const markdownToHtml = (markdown = '', demote = 1): string =>
         const level = Math.min(Math.max(heading[1].length + demote, 2), 6);
         return `<h${level}>${text(heading[2])}</h${level}>${markdownToHtml(lines.slice(1).join('\n'), demote)}`;
       }
-      return `<p>${text(lines.join(' '))}</p>`;
+      const paragraph = lines.join(' ');
+      return `<p${langAttr(paragraph)}>${text(paragraph)}</p>`;
     })
     .filter(Boolean)
     .join('\n');

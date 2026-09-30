@@ -230,6 +230,12 @@ describe('markdownToHtml', () => {
     expect(html).toContain('<ol><li>First</li><li>Second</li></ol>');
   });
 
+  it('marks the Nepali paragraphs of a bilingual post, and only those', () => {
+    const html = markdownToHtml('Facebook मा post boost गर्नु मात्र डिजिटल मार्केटिङ होइन।\n\nBoosting a post is one small tool.');
+    expect(html).toContain('<p lang="ne">Facebook मा post boost');
+    expect(html).toContain('<p>Boosting a post');
+  });
+
   it('drops a javascript: link but keeps its text', () => {
     expect(markdownToHtml('[click](javascript:alert(1))')).not.toContain('href');
   });

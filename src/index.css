@@ -343,4 +343,21 @@ body {
   }
 }
 
+/* Nepali. Blocks written mostly in Devanagari are marked lang="ne" — see
+   lib/lang.ts. Inter Tight has no Devanagari, so the browser falls through
+   to Mukta glyph by glyph: Latin loanwords inside a Nepali sentence stay in
+   the site face and the Nepali gets a face built for it. Devanagari stacks
+   marks above the headstroke and below the baseline, so it needs looser
+   leading than Latin at the same size, and tracking breaks the headstroke
+   into pieces. */
+:lang(ne) {
+  font-family: 'Inter Tight', 'Mukta', 'Noto Sans Devanagari', sans-serif;
+  letter-spacing: normal;
+  font-synthesis: none;
+}
+.markdown p:lang(ne),
+.markdown li:lang(ne) {
+  line-height: 1.95;
+}
+
 @tailwind utilities;
