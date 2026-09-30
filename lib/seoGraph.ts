@@ -1,6 +1,6 @@
-import { breadcrumbTrail, canonicalPath } from './routes';
-import { isoDate } from './dates';
-import { Faq, PortfolioData, SeoDefaults } from '../types';
+import { breadcrumbTrail, canonicalPath } from './routes.js';
+import { isoDate } from './dates.js';
+import { Faq, PortfolioData, SeoDefaults } from '../types.js';
 
 /**
  * The @id limicreatives.com already publishes on its own Organization node,

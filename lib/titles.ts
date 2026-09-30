@@ -1,4 +1,4 @@
-import { PortfolioData, SeoDefaults } from '../types';
+import { PortfolioData, SeoDefaults } from '../types.js';
 
 /**
  * The one place a page's <title> is composed.

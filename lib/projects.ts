@@ -1,4 +1,4 @@
-import { Project } from '../types';
+import { Project } from '../types.js';
 
 /**
  * The one place that decides which case studies are substantial enough to be

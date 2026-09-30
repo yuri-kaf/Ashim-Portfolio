@@ -1,5 +1,5 @@
-import { Blog, BlogCategory, PortfolioData } from '../types';
-import { byNewest } from './dates';
+import { Blog, BlogCategory, PortfolioData } from '../types.js';
+import { byNewest } from './dates.js';
 
 /**
  * The one place that decides which posts are live and which of those are

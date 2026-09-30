@@ -1,10 +1,10 @@
-import { Blog, BlogCategory, Faq, PortfolioData, Project, Service } from '../types';
-import { isoDate } from './dates';
-import { findPost, isLivePost, isSubstantialPost, liveCategories, livePosts, indexablePosts } from './posts';
-import { isSubstantialProject } from './projects';
-import { canonicalPath } from './routes';
-import { ownedServices } from './services';
-import { aboutTitle, contactTitle, homeTitle, hubTitles } from './titles';
+import { Blog, BlogCategory, Faq, PortfolioData, Project, Service } from '../types.js';
+import { isoDate } from './dates.js';
+import { findPost, isLivePost, isSubstantialPost, liveCategories, livePosts, indexablePosts } from './posts.js';
+import { isSubstantialProject } from './projects.js';
+import { canonicalPath } from './routes.js';
+import { ownedServices } from './services.js';
+import { aboutTitle, contactTitle, homeTitle, hubTitles } from './titles.js';
 
 /**
  * Everything a page says about itself in <head>, decided in one place.

@@ -1,12 +1,12 @@
-import { Blog, PortfolioData } from '../types';
-import { isoDate } from './dates';
-import { escapeHtml, markdownToHtml, text } from './markdownHtml';
-import { PageMeta, ResolvedPage, homeEyebrow, notFoundMeta, resolvePage, sitemapEntries } from './pageMeta';
-import { indexablePosts, livePosts, liveCategories, postsLinkingTo, relatedPosts } from './posts';
-import { STATIC_ROUTES, canonicalPath } from './routes';
-import { absolute, buildGraph } from './seoGraph';
-import { ownedServices, pointerServices } from './services';
-import { composeTitle } from './titles';
+import { Blog, PortfolioData } from '../types.js';
+import { isoDate } from './dates.js';
+import { escapeHtml, markdownToHtml, text } from './markdownHtml.js';
+import { PageMeta, ResolvedPage, homeEyebrow, notFoundMeta, resolvePage, sitemapEntries } from './pageMeta.js';
+import { indexablePosts, livePosts, liveCategories, postsLinkingTo, relatedPosts } from './posts.js';
+import { STATIC_ROUTES, canonicalPath } from './routes.js';
+import { absolute, buildGraph } from './seoGraph.js';
+import { ownedServices, pointerServices } from './services.js';
+import { composeTitle } from './titles.js';
 
 /**
  * Builds the HTML a crawler receives before any JavaScript runs.

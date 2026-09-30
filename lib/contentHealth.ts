@@ -1,6 +1,6 @@
-import { Blog, BlogCategory, PortfolioData, Project, Service, SocialLink } from '../types';
-import { PROJECT_CONTENT_MINIMUM, isSubstantialProject, projectContentLength } from './projects';
-import { POST_CONTENT_MINIMUM, isSubstantialPost, postContentLength } from './posts';
+import { Blog, BlogCategory, PortfolioData, Project, Service, SocialLink } from '../types.js';
+import { PROJECT_CONTENT_MINIMUM, isSubstantialProject, projectContentLength } from './projects.js';
+import { POST_CONTENT_MINIMUM, isSubstantialPost, postContentLength } from './posts.js';
 
 /**
  * One thing wrong with the content, stated the way the person editing it would
