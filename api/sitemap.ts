@@ -1,5 +1,6 @@
 import { INITIAL_DATA } from '../constants.js';
 import { sitemapXml } from '../lib/renderHtml.js';
+import { withRepoPosts } from '../lib/repoPosts.js';
 import { readContentStrict } from './_lib/blob.js';
 import { buildDateOf, loadShell } from './_lib/shell.js';
 
@@ -14,7 +15,7 @@ export async function GET(request: Request): Promise<Response> {
   const origin = new URL(request.url).origin;
   try {
     const [shell, stored] = await Promise.all([loadShell(origin), readContentStrict()]);
-    return new Response(sitemapXml(stored ?? INITIAL_DATA, buildDateOf(shell)), {
+    return new Response(sitemapXml(withRepoPosts(stored ?? INITIAL_DATA), buildDateOf(shell)), {
       status: 200,
       headers: {
         'content-type': 'application/xml; charset=utf-8',

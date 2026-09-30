@@ -1,6 +1,7 @@
 import { INITIAL_DATA } from '../constants.js';
 import { canonicalPath } from '../lib/routes.js';
 import { renderDocument, renderRoute } from '../lib/renderHtml.js';
+import { withRepoPosts } from '../lib/repoPosts.js';
 import { readContentStrict } from './_lib/blob.js';
 import { loadShell } from './_lib/shell.js';
 
@@ -65,7 +66,7 @@ export async function GET(request: Request): Promise<Response> {
     });
   }
 
-  const data = stored ?? INITIAL_DATA;
+  const data = withRepoPosts(stored ?? INITIAL_DATA);
   const page = renderRoute(data, path);
   return new Response(renderDocument(shell, page), {
     status: page.status,

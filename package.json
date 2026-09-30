@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed": "node scripts/seed-content.mjs"
+    "seed": "node scripts/seed-content.mjs",
+    "posts": "node scripts/compile-posts.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

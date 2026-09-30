@@ -75,7 +75,10 @@ const run = async () => {
   await rm(join(DIST, 'index.html'));
 
   const app = await loadAppModule();
-  const { data, source } = await loadContent(app);
+  const loaded = await loadContent(app);
+  // The deployed API may predate a post added in this build.
+  const data = app.withRepoPosts(loaded.data);
+  const { source } = loaded;
 
   await writeFile(join(DIST, 'robots.txt'), app.robotsTxt(data), 'utf8');
 

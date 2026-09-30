@@ -15,3 +15,4 @@ export { renderDocument, renderRoute, robotsTxt, sitemapXml } from '../lib/rende
 export { sitemapEntries } from '../lib/pageMeta.js';
 export { ownedServices } from '../lib/services.js';
 export { livePosts, liveCategories } from '../lib/posts.js';
+export { withRepoPosts } from '../lib/repoPosts.js';
