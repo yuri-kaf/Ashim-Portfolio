@@ -41,6 +41,10 @@ export interface SeoProps {
   service?: { name: string; description: string };
   /** Keeps drafts and previews out of search results. */
   noindex?: boolean;
+  /** Emits ProfilePage — set on /about. */
+  profile?: boolean;
+  /** For readers that only look at <meta name="author">. */
+  author?: string;
 }
 
 const upsertMeta = (attr: 'name' | 'property', key: string, content: string) => {
@@ -52,6 +56,10 @@ const upsertMeta = (attr: 'name' | 'property', key: string, content: string) => 
     document.head.appendChild(element);
   }
   element.setAttribute('content', content);
+};
+
+const removeLink = (rel: string) => {
+  document.head.querySelector(`link[rel="${rel}"]`)?.remove();
 };
 
 const upsertLink = (rel: string, href: string) => {
@@ -105,6 +113,8 @@ const Seo: React.FC<SeoProps> = ({
   faqs,
   service,
   noindex = false,
+  profile = false,
+  author,
 }) => {
   const fullTitle = composeTitle(defaults, title, exactTitle);
   const desc = description?.trim() || defaults.description;
@@ -145,12 +155,13 @@ const Seo: React.FC<SeoProps> = ({
       description: desc,
       faqs,
       service,
+      profile,
       article,
     })),
     // article, faqs and service are intentionally omitted here in favour of
     // the primitive keys derived above — see the comment where they're built.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [defaults, data, path, title, exactTitle, breadcrumbTitle, desc, type, schemaType, publishedTime, ogImage, tagsKey, faqsKey, serviceKey],
+    [defaults, data, path, title, exactTitle, breadcrumbTitle, desc, type, schemaType, publishedTime, ogImage, tagsKey, faqsKey, serviceKey, profile],
   );
 
   useEffect(() => {
@@ -162,7 +173,11 @@ const Seo: React.FC<SeoProps> = ({
     // /works and the CTA, and this matches the static HTML the prerenderer
     // writes for the same page.
     upsertMeta('name', 'robots', noindex ? 'noindex, follow' : 'index, follow');
-    upsertLink('canonical', url);
+    // A page kept out of the index names no canonical — the same rule
+    // lib/renderHtml.ts applies to the HTML the server sends.
+    if (noindex) removeLink('canonical');
+    else upsertLink('canonical', url);
+    if (author) upsertMeta('name', 'author', author);
 
     upsertMeta('property', 'og:title', fullTitle);
     upsertMeta('property', 'og:description', desc);
@@ -191,6 +206,7 @@ const Seo: React.FC<SeoProps> = ({
     defaults.twitterHandle,
     defaults.siteUrl,
     graph,
+    author,
   ]);
 
   return null;

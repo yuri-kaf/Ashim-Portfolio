@@ -1,5 +1,6 @@
 import { INITIAL_DATA } from '../constants.js';
 import { sanitizePortfolioData } from '../lib/sanitize.js';
+import { withRepoPosts } from '../lib/repoPosts.js';
 import { readContent, writeContent } from './_lib/blob.js';
 import { error, json, readJson } from './_lib/http.js';
 import { isAuthenticated } from './_lib/session.js';
@@ -11,10 +12,13 @@ import { isAuthenticated } from './_lib/session.js';
  * unreachable, so the site renders even before the store is provisioned.
  * `s-maxage` lets the Vercel CDN absorb visitor traffic; a save becomes
  * visible within that window.
+ *
+ * Posts written in content/posts/ are merged in — see lib/repoPosts.ts — so
+ * the dashboard lists them and its next save stores them.
  */
 export async function GET(): Promise<Response> {
   const stored = await readContent();
-  return json(stored ?? INITIAL_DATA, 200, {
+  return json(withRepoPosts(stored ?? INITIAL_DATA), 200, {
     'cache-control': 'public, s-maxage=30, stale-while-revalidate=300',
   });
 }

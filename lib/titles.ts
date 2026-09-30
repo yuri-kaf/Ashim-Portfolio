@@ -1,4 +1,4 @@
-import { PortfolioData, SeoDefaults } from '../types';
+import { PortfolioData, SeoDefaults } from '../types.js';
 
 /**
  * The one place a page's <title> is composed.
@@ -30,12 +30,46 @@ export const composeTitle = (
   exact?: string,
 ): string => {
   if (exact?.trim()) return exact.trim();
-  return title?.trim() ? `${title.trim()}${seo.titleSuffix}` : seo.siteName;
+  const base = title?.trim();
+  if (!base) return seo.siteName;
+  // The suffix is branding, the title is the query. When both do not fit,
+  // the suffix goes — otherwise Google cuts the words that match the search
+  // and keeps the name nobody searched for.
+  const suffixed = `${base}${seo.titleSuffix}`;
+  return suffixed.length <= TITLE_LIMIT ? suffixed : base;
 };
 
-/** "Ashim Kafle — Product Designer & Digital Marketer" (48 chars). */
-export const homeTitle = (data: PortfolioData): string =>
-  data.role?.trim() ? `${data.name} — ${data.role}` : data.name;
+/**
+ * The country the practice sits in, spelled out: "NP" is what the schema
+ * wants, "Nepal" is what people type.
+ */
+export const countryName = (data: PortfolioData): string => {
+  const code = data.seo?.geo?.country?.trim();
+  if (!code) return '';
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+};
+
+/**
+ * "Ashim Kafle — Product Designer & Digital Marketer in Nepal" (58 chars).
+ *
+ * The country is the local intent every query this site targets carries —
+ * "ui ux designer in nepal", "digital marketer in nepal" — and the home page
+ * is the one most likely to rank for them, so it goes in the title whenever
+ * it fits. It is dropped rather than truncated when a longer role would push
+ * the title past what a results page shows.
+ */
+export const homeTitle = (data: PortfolioData): string => {
+  const role = data.role?.trim();
+  if (!role) return data.name;
+  const base = `${data.name} — ${role}`;
+  const country = countryName(data);
+  const local = country ? `${base} in ${country}` : base;
+  return local.length <= TITLE_LIMIT ? local : base;
+};
 
 /**
  * "Ashim Kafle — Co-founder & CMO of Limi Creatives" (48 chars).
@@ -65,4 +99,28 @@ export const aboutTitle = (data: PortfolioData): string => {
 export const contactTitle = (data: PortfolioData): string => {
   const city = data.seo?.geo?.city?.trim() || data.contact?.location?.trim();
   return city ? `Contact — Web Designer in ${city}` : 'Contact';
+};
+
+/**
+ * Titles for the hub pages, each written for the query the hub can win
+ * rather than the nav label. "Services | Ashim Kafle" and "Journal | Ashim
+ * Kafle" named nothing anyone searches for.
+ *
+ * `exact` titles carry their own place name and skip the suffix; the rest
+ * take " | Ashim Kafle" like any page title.
+ */
+export const hubTitles = (data: PortfolioData): Record<
+  'services' | 'works' | 'blog' | 'gallery' | 'vibe',
+  { title?: string; exactTitle?: string }
+> => {
+  const country = countryName(data);
+  return {
+    services: country
+      ? { exactTitle: `Web Design, UI/UX & Branding Services in ${country}` }
+      : { title: 'Web Design, UI/UX & Branding Services' },
+    works: { title: 'UI/UX & Brand Design Portfolio' },
+    blog: { title: 'Web Design & Digital Marketing Blog' },
+    gallery: { title: 'Gallery' },
+    vibe: { title: 'Vibe' },
+  };
 };

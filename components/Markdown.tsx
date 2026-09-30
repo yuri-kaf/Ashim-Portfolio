@@ -1,6 +1,22 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { isMostlyDevanagari } from '../lib/lang';
+
+/** The plain text inside rendered children, for deciding the block's language. */
+const textOf = (node: React.ReactNode): string => {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) return textOf(node.props.children);
+  return '';
+};
+
+/**
+ * `lang="ne"` on a block that is mostly Nepali — see lib/lang.ts. Bilingual
+ * posts alternate Nepali and English paragraphs, and Markdown cannot say
+ * which is which.
+ */
+const lang = (children: React.ReactNode) => (isMostlyDevanagari(textOf(children)) ? 'ne' : undefined);
 
 /**
  * Renders a post body written in Markdown.
@@ -21,23 +37,23 @@ const Markdown: React.FC<{ children: string; className?: string }> = ({
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children: c }) => (
-          <h2 className="display mb-5 mt-14 text-3xl md:text-4xl">{c}</h2>
+          <h2 lang={lang(c)} className="display mb-5 mt-14 text-3xl md:text-4xl">{c}</h2>
         ),
         h2: ({ children: c }) => (
-          <h2 className="display mb-5 mt-14 text-3xl md:text-4xl">{c}</h2>
+          <h2 lang={lang(c)} className="display mb-5 mt-14 text-3xl md:text-4xl">{c}</h2>
         ),
         h3: ({ children: c }) => (
-          <h3 className="mb-4 mt-10 text-xl font-medium md:text-2xl">{c}</h3>
+          <h3 lang={lang(c)} className="mb-4 mt-10 text-xl font-medium md:text-2xl">{c}</h3>
         ),
         p: ({ children: c }) => (
-          <p className="mb-6 text-base font-light leading-[1.85] text-[var(--grey-1)] md:text-lg">
+          <p lang={lang(c)} className="mb-6 text-base font-light leading-[1.85] text-[var(--grey-1)] md:text-lg">
             {c}
           </p>
         ),
         ul: ({ children: c }) => <ul className="mb-6 list-disc space-y-2 pl-6">{c}</ul>,
         ol: ({ children: c }) => <ol className="mb-6 list-decimal space-y-2 pl-6">{c}</ol>,
         li: ({ children: c }) => (
-          <li className="text-base font-light leading-relaxed text-[var(--grey-1)] md:text-lg">
+          <li lang={lang(c)} className="text-base font-light leading-relaxed text-[var(--grey-1)] md:text-lg">
             {c}
           </li>
         ),

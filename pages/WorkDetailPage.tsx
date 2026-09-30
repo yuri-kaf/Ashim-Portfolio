@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import Seo from '../components/Seo';
+import { projectMeta } from '../lib/pageMeta';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 import { PortfolioData } from '../types';
 import NotFoundPage from './NotFoundPage';
-import { isSubstantialProject } from '../lib/projects';
 import {
   PageShell,
   Reveal,
@@ -78,21 +78,7 @@ const WorkDetailPage: React.FC<WorkDetailPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        title={project.title}
-        breadcrumbTitle={project.title}
-        description={project.subtitle || project.description}
-        image={project.image}
-        path={`/works/${project.slug}`}
-        type="article"
-        schemaType="CreativeWork"
-        // A case study too thin to index statically must not be indexable at
-        // runtime either — the same predicate the prerenderer reads, so the
-        // baked HTML and the head React writes cannot disagree.
-        noindex={!isSubstantialProject(project)}
-      />
+      <Seo defaults={data.seo} data={data} {...projectMeta(project)} />
 
       {/* ---------- Title block ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-20 pt-36">

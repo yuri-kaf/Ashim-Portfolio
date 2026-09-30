@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Seo from '../components/Seo';
-import { homeTitle } from '../lib/titles';
+import { homeEyebrow, homeMeta } from '../lib/pageMeta';
+import { indexablePosts } from '../lib/posts';
+import { ownedServices } from '../lib/services';
 import { Link } from 'react-router-dom';
 import {
   motion,
@@ -11,6 +13,7 @@ import {
 } from 'motion/react';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import {
+  Blog,
   PortfolioData,
   Project,
   Service,
@@ -116,6 +119,13 @@ const Hero: React.FC<{ data: PortfolioData }> = ({ data }) => {
         style={reduced ? undefined : { y: typeY }}
         className="relative z-20 mx-auto mt-[4svh] max-w-[1600px] px-5 md:mt-[6svh] md:px-10"
       >
+        {/* What and where, in the words people search for. The headline
+            below is a slogan; this line is what says "UI/UX designer,
+            Kathmandu" to a visitor skimming and to a crawler reading the
+            h1's neighbourhood. lib/renderHtml.ts prints the same line. */}
+        {homeEyebrow(data) && (
+          <p className="mono mb-5 text-white/70 md:mb-7">{homeEyebrow(data)}</p>
+        )}
         {/* Both disciplines named outright, at equal scale — design alone
             undersold half the practice. Solid = design, outlined = marketing.
             Sized so four lines clear a 900px-tall laptop viewport. */}
@@ -407,7 +417,19 @@ const Work: React.FC<{ projects: Project[] }> = ({ projects }) => {
  * SERVICES — brutalist list, each row inverts to solid ink
  * ================================================================== */
 
-const Services: React.FC<{ services: Service[] }> = ({ services }) => (
+/**
+ * Where a service row goes: its own page when this site owns one, the agency's
+ * page when it is a pointer, the hub otherwise. Every row used to go to
+ * /services, which left the service pages without a link from the page that
+ * carries the most weight.
+ */
+const serviceTarget = (service: Service, owned: Set<string>): { to?: string; href?: string } => {
+  if (owned.has(service.id)) return { to: `/services/${service.slug}` };
+  if (service.mode === 'pointer' && service.externalUrl.trim()) return { href: service.externalUrl };
+  return { to: '/services' };
+};
+
+const Services: React.FC<{ services: Service[]; owned: Set<string> }> = ({ services, owned }) => (
   <section id="services" className="border-t border-[var(--hairline)] bg-[var(--paper)]">
     <div className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 md:px-10 md:pt-32">
       <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -427,12 +449,12 @@ const Services: React.FC<{ services: Service[] }> = ({ services }) => (
       </div>
 
       <div className="border-t border-[var(--ink)]">
-        {services.map((service, idx) => (
-          <Reveal key={service.id} delay={idx * 0.06}>
-            <Link
-              to="/services"
-              className="invert-row group flex items-center gap-5 border-b border-[var(--hairline)] py-7 md:gap-10 md:py-9"
-            >
+        {services.map((service, idx) => {
+          const target = serviceTarget(service, owned);
+          const className =
+            'invert-row group flex items-center gap-5 border-b border-[var(--hairline)] py-7 md:gap-10 md:py-9';
+          const row = (
+            <>
               <span className="mono invert-dim w-8 shrink-0 text-[var(--grey-2)]">
                 {String(idx + 1).padStart(2, '0')}
               </span>
@@ -449,13 +471,78 @@ const Services: React.FC<{ services: Service[] }> = ({ services }) => (
                 size={26}
                 className="shrink-0 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1"
               />
-            </Link>
-          </Reveal>
-        ))}
+            </>
+          );
+          return (
+            <Reveal key={service.id} delay={idx * 0.06}>
+              {target.href ? (
+                <a href={target.href} target="_blank" rel="noopener" className={className}>
+                  {row}
+                </a>
+              ) : (
+                <Link to={target.to ?? '/services'} className={className}>
+                  {row}
+                </Link>
+              )}
+            </Reveal>
+          );
+        })}
       </div>
     </div>
   </section>
 );
+
+/* ================================================================== *
+ * JOURNAL — the newest writing, linked from the page with the most weight
+ * ================================================================== */
+
+const Journal: React.FC<{ posts: Blog[] }> = ({ posts }) => {
+  if (!posts.length) return null;
+  return (
+    <section id="journal" className="border-t border-[var(--hairline)] bg-[var(--paper)]">
+      <div className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 md:px-10 md:pt-32">
+        <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Reveal>
+              <span className="mono bracket mb-6 block text-[var(--grey-1)]">From the journal</span>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <h2 className="mega text-[13vw] leading-[0.82] md:text-[7vw]">Writing</h2>
+            </Reveal>
+          </div>
+          <Reveal delay={0.2}>
+            <Link to="/blog" className="group mono whitespace-nowrap">
+              <HoverSwap>All posts →</HoverSwap>
+            </Link>
+          </Reveal>
+        </div>
+
+        <div className="border-t border-[var(--ink)]">
+          {posts.map((post, idx) => (
+            <Reveal key={post.id} delay={idx * 0.06}>
+              <Link
+                to={`/blog/${post.slug}`}
+                className="invert-row group flex flex-col gap-3 border-b border-[var(--hairline)] py-8 md:flex-row md:items-center md:gap-10 md:py-10"
+              >
+                <span className="mono invert-dim w-32 shrink-0 text-[var(--grey-2)]">{post.date}</span>
+                <h3 className="display flex-1 text-2xl leading-tight md:text-4xl">{post.title}</h3>
+                {post.excerpt && (
+                  <p className="invert-dim hidden max-w-[340px] text-sm font-light leading-snug text-[var(--grey-1)] lg:block">
+                    {post.excerpt}
+                  </p>
+                )}
+                <ArrowUpRight
+                  size={26}
+                  className="hidden shrink-0 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1 md:block"
+                />
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 /* ================================================================== *
  * GALLERY — offset mosaic of candid working shots
@@ -640,21 +727,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ data }) => {
   const gallery = Array.isArray(data?.gallery) ? data.gallery.filter(Boolean) : [];
   const ticker = Array.isArray(data?.ticker) ? data.ticker.filter(Boolean) : [];
   const disciplines = Array.isArray(data?.disciplines) ? data.disciplines.filter(Boolean) : [];
+  const owned = new Set(ownedServices(data).map((service) => service.id));
+  const posts = indexablePosts(data).slice(0, 3);
 
   return (
     <div className="bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        path="/"
-        exactTitle={homeTitle(data)}
-        description={data.tagline}
-      />
+      <Seo defaults={data.seo} data={data} {...homeMeta(data)} />
       <Hero data={data} />
       <Ticker items={ticker} />
       <Disciplines disciplines={disciplines} />
       <Work projects={projects} />
-      <Services services={services} />
+      <Services services={services} owned={owned} />
+      <Journal posts={posts} />
       <Gallery items={gallery} />
       <Contact social={data.social} contact={data.contact} />
     </div>

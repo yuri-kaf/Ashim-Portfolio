@@ -3,11 +3,13 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { PortfolioData } from '../types';
 import Seo from '../components/Seo';
+import { serviceMeta } from '../lib/pageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Markdown from '../components/Markdown';
 import { PageShell, Reveal, SectionLabel } from '../components/Motion';
 import NotFoundPage from './NotFoundPage';
 import { ownedServices } from '../lib/services';
+import { postsLinkingTo } from '../lib/posts';
 
 interface ServiceDetailPageProps {
   data: PortfolioData;
@@ -35,20 +37,12 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ data }) => {
   const faqs = service.faqs ?? [];
   const deliverables = service.deliverables ?? [];
   const heading = service.seoTitle?.trim() || service.title;
+  // Every post that sends readers here gets a link back from here.
+  const reading = postsLinkingTo(data, `/services/${service.slug}`);
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        title={service.seoTitle?.trim() || service.title}
-        breadcrumbTitle={service.title}
-        description={service.metaDescription?.trim() || service.description}
-        image={service.image}
-        path={`/services/${service.slug}`}
-        faqs={faqs}
-        service={{ name: service.title, description: service.description }}
-      />
+      <Seo defaults={data.seo} data={data} {...serviceMeta(service)} />
 
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-32 md:pt-40">
@@ -125,6 +119,33 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ data }) => {
                       {faq.answer}
                     </p>
                   </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- Further reading ---------- */}
+      {reading.length > 0 && (
+        <section className="border-t border-black/[0.05] px-6 py-24">
+          <div className="mx-auto max-w-7xl">
+            <Reveal>
+              <SectionLabel className="mb-10">Further reading</SectionLabel>
+            </Reveal>
+            <div className="border-t border-[var(--ink)]">
+              {reading.map((post) => (
+                <Reveal key={post.id}>
+                  <Link
+                    to={`/blog/${post.slug}`}
+                    className="invert-row group flex items-center justify-between gap-6 border-b border-[var(--hairline)] px-4 py-8"
+                  >
+                    <span className="display text-2xl md:text-3xl">{post.title}</span>
+                    <ArrowRight
+                      size={22}
+                      className="shrink-0 transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </Link>
                 </Reveal>
               ))}
             </div>

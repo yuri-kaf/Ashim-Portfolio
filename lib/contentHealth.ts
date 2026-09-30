@@ -1,5 +1,6 @@
-import { Blog, BlogCategory, PortfolioData, Project, Service, SocialLink } from '../types';
-import { PROJECT_CONTENT_MINIMUM, isSubstantialProject, projectContentLength } from './projects';
+import { Blog, BlogCategory, PortfolioData, Project, Service, SocialLink } from '../types.js';
+import { PROJECT_CONTENT_MINIMUM, isSubstantialProject, projectContentLength } from './projects.js';
+import { POST_CONTENT_MINIMUM, isSubstantialPost, postContentLength } from './posts.js';
 
 /**
  * One thing wrong with the content, stated the way the person editing it would
@@ -140,6 +141,18 @@ export const contentIssues = (data: PortfolioData): Issue[] => {
         section: 'blogs',
         severity: 'blocking',
         message: `"${title}" is filed under a category that no longer exists. Pick a current one.`,
+      });
+    }
+
+    // lib/posts.ts holds a post this short out of the index and the sitemap.
+    // The journal still lists it, so it reads as published and is invisible.
+    if (!isSubstantialPost(post)) {
+      const short = Math.max(0, POST_CONTENT_MINIMUM - postContentLength(post));
+      issues.push({
+        id: `post-thin:${key}`,
+        section: 'blogs',
+        severity: 'blocking',
+        message: `"${title}" is not indexed — it needs about ${short} more characters of writing before it goes in the sitemap. Finish it, or unpublish it.`,
       });
     }
 

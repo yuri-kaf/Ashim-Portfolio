@@ -4,8 +4,8 @@ import { ArrowRight, Mail, MapPin, Phone } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { DEFAULT_DATA } from '../lib/defaults.js';
 import { ownedServices } from '../lib/services';
-import { contactTitle } from '../lib/titles';
 import Seo from '../components/Seo';
+import { contactMeta } from '../lib/pageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
 import {
   PageShell,
@@ -47,16 +47,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ data }) => {
 
   return (
     <PageShell className="min-h-screen bg-[var(--paper)]">
-      <Seo
-        defaults={data.seo}
-        data={data}
-        exactTitle={contactTitle(data)}
-        breadcrumbTitle="Contact"
-        // No email address in the description — see scripts/prerender.mjs.
-        // The visible mailto: link below is how a human gets in touch.
-        description={`Hire a web designer and digital marketer in ${city}. Call ${phone} — ${name}, ${location}.`}
-        path="/contact"
-      />
+      <Seo defaults={data.seo} data={data} {...contactMeta(data)} />
 
       {/* ---------- Masthead ---------- */}
       <header className="grain relative overflow-hidden bg-white px-6 pb-24 pt-32 md:pt-40">

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { INITIAL_DATA } from '../constants';
 import Seo from '../components/Seo';
+import { notFoundMeta } from '../lib/pageMeta';
 
 /**
  * Renders its own <head>, which a 404 otherwise inherits from index.html —
@@ -17,14 +18,7 @@ import Seo from '../components/Seo';
 const NotFoundSeo: React.FC = () => {
   const { pathname } = useLocation();
   return (
-    <Seo
-      defaults={INITIAL_DATA.seo}
-      data={INITIAL_DATA}
-      title="Page not found"
-      description="That page does not exist."
-      path={pathname}
-      noindex
-    />
+    <Seo defaults={INITIAL_DATA.seo} data={INITIAL_DATA} {...notFoundMeta(pathname)} />
   );
 };
 

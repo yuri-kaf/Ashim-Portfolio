@@ -1,4 +1,4 @@
-import { PortfolioData, Service } from '../types';
+import { PortfolioData, Service } from '../types.js';
 
 /**
  * The one place that decides which services this site owns a page for.
