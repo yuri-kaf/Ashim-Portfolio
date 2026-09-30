@@ -1,4 +1,5 @@
 import { breadcrumbTrail, canonicalPath } from './routes';
+import { isoDate } from './dates';
 import { Faq, PortfolioData, SeoDefaults } from '../types';
 
 /**
@@ -10,6 +11,7 @@ import { Faq, PortfolioData, SeoDefaults } from '../types';
  */
 export const LIMI_ORG_ID = 'https://limicreatives.com/#organization';
 export const PERSON_ID = 'https://www.ashimkafle.com.np/#person';
+export const WEBSITE_ID = 'https://www.ashimkafle.com.np/#website';
 
 export const absolute = (siteUrl: string, value: string): string =>
   /^(https?:)?\/\//.test(value)
@@ -50,6 +52,12 @@ export interface GraphInput {
   };
   /** Set for /services/:slug. */
   service?: { name: string; description: string };
+  /**
+   * Set on /about. Wraps the page in ProfilePage with the Person as its main
+   * entity — Google's markup for "this page is about this person", which is
+   * the claim the page exists to make.
+   */
+  profile?: boolean;
 }
 
 /**
@@ -62,7 +70,7 @@ export interface GraphInput {
  * local businesses at one number degrades local trust signals for both.
  */
 export const buildGraph = ({
-  seo, data, path, title, breadcrumbTitle, description, faqs, article, service,
+  seo, data, path, title, breadcrumbTitle, description, faqs, article, service, profile,
 }: GraphInput) => {
   const origin = seo.siteUrl.replace(/\/$/, '');
   // Canonicalised so this page's self-URL cannot disagree with the URL the
@@ -103,7 +111,28 @@ export const buildGraph = ({
       url: data.company.url || undefined,
       founder: { '@id': PERSON_ID },
     },
+    {
+      // The site itself. Google reads the WebSite node on the home page to
+      // choose the site name it prints above every result; without one it
+      // guesses from the title, and the title changes per page.
+      '@type': 'WebSite',
+      '@id': WEBSITE_ID,
+      name: seo.siteName,
+      url: `${origin}/`,
+      inLanguage: 'en',
+      publisher: { '@id': PERSON_ID },
+    },
   ];
+
+  if (profile) {
+    nodes.push({
+      '@type': 'ProfilePage',
+      url,
+      name: title,
+      mainEntity: { '@id': PERSON_ID },
+      isPartOf: { '@id': WEBSITE_ID },
+    });
+  }
 
   const trail = breadcrumbTrail(path, breadcrumbTitle?.trim() || title);
   if (trail.length > 1) {
@@ -131,14 +160,22 @@ export const buildGraph = ({
 
   if (article) {
     const isPost = (article.type ?? 'BlogPosting') === 'BlogPosting';
+    // ISO 8601 or nothing. Dates are typed by hand in the dashboard ("Sept
+    // 14, 2026"), and schema.org rejects that shape outright.
+    const published = isoDate(article.published) ?? undefined;
     nodes.push({
       '@type': isPost ? 'BlogPosting' : 'CreativeWork',
       headline: article.headline,
       description: desc,
       image: absolute(origin, article.image || seo.ogImage),
       url,
-      // Omitted rather than invented when the source carries no date.
-      datePublished: article.published || undefined,
+      mainEntityOfPage: url,
+      inLanguage: 'en',
+      isPartOf: { '@id': WEBSITE_ID },
+      // Omitted rather than invented when the source carries no date. There
+      // is no edit history, so the last change is the publication.
+      datePublished: published,
+      dateModified: isPost ? published : undefined,
       ...(isPost
         ? {
             author: { '@id': PERSON_ID },
