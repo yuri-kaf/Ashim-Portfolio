@@ -55,11 +55,14 @@ const table = (lines: string[]): string => {
 };
 
 /**
- * @param demote how many levels to push headings down. The page writes its
- *   own <h1>, so a body heading must never become a second one — `# Title`
- *   in a post body renders as <h2>.
+ * @param demote how many levels to push headings down. Headings never go
+ *   above <h2> either way: the page writes its own <h1>, so `# Title` in a
+ *   post body renders as <h2>. The default of 0 maps `##` to <h2> and `###`
+ *   to <h3>, as components/Markdown.tsx does in the browser. It used to be 1,
+ *   which put the service pages' `## What you get` at <h3> straight under the
+ *   <h1>, a skipped level in the outline crawlers read.
  */
-export const markdownToHtml = (markdown = '', demote = 1): string =>
+export const markdownToHtml = (markdown = '', demote = 0): string =>
   String(markdown ?? '')
     .replace(/\r\n/g, '\n')
     .split(/\n{2,}/)
