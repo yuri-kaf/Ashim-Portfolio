@@ -144,16 +144,54 @@ const HUB_PATHS: Record<Hub, string> = {
   vibe: '/vibe',
 };
 
+/**
+ * The second sentence a hub's description gets when its intro is too short
+ * to fill a results snippet. The intros are written as on-page ledes ("Notes
+ * on design, marketing and the space where they overlap.", 60 characters)
+ * and say nothing about who or where; this adds both from the content.
+ */
+const hubContext = (data: PortfolioData, hub: Hub): string => {
+  const name = clean(data.name);
+  const city = clean(data.seo?.geo?.city) || clean(data.contact?.location);
+  const where = city ? ` in ${city}` : '';
+  switch (hub) {
+    case 'services':
+      return `Web design, UI/UX, branding and motion from ${name}${where}.`;
+    case 'works':
+      return `Selected design and marketing work by ${name}${where}.`;
+    case 'blog':
+      return `Practical writing on web design, UI/UX and digital marketing for Nepali businesses, by ${name}.`;
+    case 'gallery':
+      return `Behind the scenes of ${name}'s design and marketing practice${where}.`;
+    case 'vibe':
+      return `The process, principles and tools behind ${name}'s design work${where}.`;
+  }
+};
+
+/** Below this an intro leaves most of a snippet empty. */
+const SHORT_DESCRIPTION = 110;
+
 export const hubMeta = (data: PortfolioData, hub: Hub): PageMeta => {
   const titles = hubTitles(data)[hub];
   const intro = clean(data.pageIntros?.[hub]);
+  const description =
+    intro && intro.length < SHORT_DESCRIPTION ? `${intro} ${hubContext(data, hub)}` : intro;
   return {
     path: HUB_PATHS[hub],
     ...titles,
-    description: describe(intro, data.seo?.description),
+    description: describe(description, data.seo?.description),
     type: 'website',
   };
 };
+
+export const privacyMeta = (data: PortfolioData): PageMeta => ({
+  path: '/privacy',
+  title: 'Privacy',
+  description: describe(
+    `How ${data.name}'s website handles your data: no forms, no analytics, no tracking cookies. What the hosting sees, and what happens when you get in touch.`,
+  ),
+  type: 'website',
+});
 
 export const serviceMeta = (service: Service): PageMeta => ({
   path: `/services/${service.slug}`,
@@ -225,7 +263,7 @@ export const notFoundMeta = (path: string): PageMeta => ({
 
 /** What the URL points at, for the server renderer to build a body from. */
 export type ResolvedPage =
-  | { kind: 'home' | 'about' | 'contact'; meta: PageMeta }
+  | { kind: 'home' | 'about' | 'contact' | 'privacy'; meta: PageMeta }
   | { kind: Hub; meta: PageMeta }
   | { kind: 'service'; meta: PageMeta; service: Service }
   | { kind: 'project'; meta: PageMeta; project: Project }
@@ -249,6 +287,8 @@ export const resolvePage = (data: PortfolioData, rawPath: string): ResolvedPage 
       return { kind: 'about', meta: aboutMeta(data) };
     case '/contact':
       return { kind: 'contact', meta: contactMeta(data) };
+    case '/privacy':
+      return { kind: 'privacy', meta: privacyMeta(data) };
     case '/services':
     case '/works':
     case '/blog':
@@ -316,6 +356,7 @@ export const sitemapEntries = (
         : buildDate,
   }));
 
+  entries.push({ path: '/privacy', priority: '0.2', lastmod: buildDate });
   for (const service of ownedServices(data)) {
     entries.push({ path: `/services/${service.slug}`, priority: '0.8', lastmod: buildDate });
   }

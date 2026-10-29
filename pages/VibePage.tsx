@@ -4,6 +4,7 @@ import { hubMeta } from '../lib/pageMeta';
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react';
 import { Quote, Heart } from 'lucide-react';
 import DynamicIcon from '../components/DynamicIcon';
+import { VIBE_PRINCIPLES, VIBE_PROMISE } from '../lib/pageCopy';
 import { PortfolioData, ProcessStep } from '../types';
 import {
   PageShell,
@@ -270,20 +271,13 @@ const VibePage: React.FC<VibePageProps> = ({ data }) => {
                 />
                 <Reveal delay={0.3}>
                   <p className="max-w-md text-lg font-light leading-relaxed text-neutral-400">
-                    I don't just deliver files; I deliver impact. The goal is to make your product
-                    the most desirable asset in its niche by leveraging deep psychology and
-                    cutting-edge visual craft.
+                    {VIBE_PROMISE}
                   </p>
                 </Reveal>
               </div>
 
               <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2" stagger={0.1}>
-                {[
-                  { k: 'Senior only', v: 'You work directly with me — no handoffs to juniors.' },
-                  { k: 'Systems first', v: 'Everything ships as reusable components, not one-offs.' },
-                  { k: 'Fast loops', v: 'Reviewable work in your hands within days, not weeks.' },
-                  { k: 'Built to ship', v: 'Designs that respect real engineering constraints.' },
-                ].map((item) => (
+                {VIBE_PRINCIPLES.map((item) => (
                   <StaggerItem key={item.k}>
                     <div className="glass-card-dark h-full rounded-none p-7 transition-colors duration-500 hover:border-white/25">
                       <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">

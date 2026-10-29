@@ -36,6 +36,7 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const GalleryPage = lazy(() => import('./pages/GalleryPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 /**
  * Shown while a route chunk is in flight.
@@ -120,6 +121,7 @@ const App: React.FC = () => {
       <Route path="/blog/category/:slug" element={<BlogCategoryPage data={data} />} />
       <Route path="/blog/:slug" element={<BlogDetailPage data={data} />} />
       <Route path="/gallery" element={<GalleryPage data={data} />} />
+      <Route path="/privacy" element={<PrivacyPage data={data} />} />
       {/* Not linked in the nav — the admin panel is being built separately. */}
       <Route path="/dashboard" element={<DashboardPage data={data} updateData={updateData} />} />
       <Route path="*" element={<NotFoundPage />} />
