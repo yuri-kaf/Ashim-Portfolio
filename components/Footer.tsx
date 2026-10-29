@@ -143,7 +143,13 @@ const Footer: React.FC<{ data: PortfolioData }> = ({ data }) => {
         </div>
 
         <div className="flex flex-col justify-between gap-3 border-t border-white/10 pt-6 md:flex-row">
-          <p className="mono text-white/35">© {new Date().getFullYear()} {name}</p>
+          <p className="mono text-white/35">
+            © {new Date().getFullYear()} {name}
+            <span className="mx-3 text-white/20">/</span>
+            <Link to="/privacy" className="hover:text-white">
+              Privacy
+            </Link>
+          </p>
           <p className="mono text-white/35">Design &amp; Marketing — Kathmandu, Nepal</p>
         </div>
       </div>

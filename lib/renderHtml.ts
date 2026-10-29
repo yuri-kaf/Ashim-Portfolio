@@ -1,7 +1,17 @@
 import { Blog, PortfolioData } from '../types.js';
 import { isoDate } from './dates.js';
 import { escapeHtml, markdownToHtml, text } from './markdownHtml.js';
-import { PageMeta, ResolvedPage, homeEyebrow, notFoundMeta, resolvePage, sitemapEntries } from './pageMeta.js';
+import { ENGAGEMENTS, VIBE_PRINCIPLES, VIBE_PROMISE } from './pageCopy.js';
+import {
+  PageMeta,
+  ResolvedPage,
+  homeEyebrow,
+  notFoundMeta,
+  resolvePage,
+  sitemapEntries,
+  summarise,
+} from './pageMeta.js';
+import { PRIVACY_UPDATED, privacySections } from './privacy.js';
 import { indexablePosts, livePosts, liveCategories, postsLinkingTo, relatedPosts } from './posts.js';
 import { STATIC_ROUTES, canonicalPath } from './routes.js';
 import { absolute, buildGraph } from './seoGraph.js';
@@ -66,8 +76,23 @@ const faqHtml = (faqs: PageMeta['faqs'] = []): string =>
       )
     : '';
 
+/** A post with no excerpt (the UI/UX pricing post has none) is summarised from its body. */
 const postLinks = (posts: Blog[]) =>
-  linkList(posts.map((post) => ({ href: `/blog/${post.slug}`, label: post.title, note: post.excerpt })));
+  linkList(
+    posts.map((post) => ({
+      href: `/blog/${post.slug}`,
+      label: post.title,
+      note: post.excerpt?.trim() || summarise(post.content),
+    })),
+  );
+
+/** Term/definition pairs, for the short labelled cards several pages print. */
+const definitions = (items: Array<{ term: string; detail: string }>): string => {
+  const usable = items.filter((item) => item.term?.trim() && item.detail?.trim());
+  return usable.length
+    ? `<dl>${usable.map((item) => `<dt>${text(item.term)}</dt><dd>${text(item.detail)}</dd>`).join('')}</dl>`
+    : '';
+};
 
 /**
  * The site nav, on every page. Crawlers that do not run scripts otherwise
@@ -76,7 +101,15 @@ const postLinks = (posts: Blog[]) =>
 const siteNav = (): string =>
   `<nav aria-label="Site">${linkList(
     STATIC_ROUTES.map((route) => ({ href: route.path, label: route.label })),
-  )}</nav>`;
+  )}</nav><footer><p><a href="/privacy">Privacy</a></p></footer>`;
+
+/** Profiles with a real URL. The footer greys out the empty ones; here they are left out. */
+const socialLinks = (data: PortfolioData) =>
+  linkList(
+    (data.social ?? [])
+      .filter((entry) => entry?.url?.trim())
+      .map((entry) => ({ href: entry.url, label: entry.label })),
+  );
 
 const serviceLinks = (data: PortfolioData) => [
   ...ownedServices(data).map((service) => ({
@@ -158,6 +191,18 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
         para(data.heroIntro),
         founderSentence(data),
         data.contact?.location ? `<p>I work from ${escapeHtml(data.contact.location)}.</p>` : '',
+        plainList((data.stats ?? []).map((stat) => stat && `${stat.value}${stat.suffix ?? ''} ${stat.label}`)),
+        section(
+          'Design and marketing, one desk.',
+          (data.disciplines ?? [])
+            .filter((discipline) => discipline?.key)
+            .map(
+              (discipline) =>
+                `<h3>${text(discipline.key)}</h3>${para(discipline.blurb)}${plainList(discipline.items ?? [])}`,
+            )
+            .join(''),
+        ),
+        section('Elsewhere', socialLinks(data)),
         linkList([
           { href: '/works', label: 'See the work' },
           { href: '/services', label: 'What I take on' },
@@ -165,6 +210,10 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
           { href: '/contact', label: 'Get in touch' },
         ]),
       ].join('');
+    case 'privacy':
+      return `<article><h1>Privacy</h1><p>Last updated ${escapeHtml(PRIVACY_UPDATED)}</p>${privacySections(data)
+        .map((entry) => section(entry.heading, entry.paragraphs.map((paragraph) => para(paragraph)).join('')))
+        .join('')}</article>`;
     case 'contact':
       return [
         `<h1>Hire a web designer${city ? ` in ${escapeHtml(city)}` : ''}.</h1>`,
@@ -177,6 +226,16 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
         '<h1>Design Services in Nepal.</h1>',
         para(intros.services),
         linkList(serviceLinks(data)),
+        ...ownedServices(data).map((service) =>
+          section(service.title, `${para(service.description)}${plainList(service.deliverables ?? [])}<p><a href="/services/${escapeHtml(service.slug)}">More about ${escapeHtml(service.title)}</a></p>`),
+        ),
+        section(
+          'Three ways to engage.',
+          ENGAGEMENTS.map(
+            (tier) => `<h3>${text(tier.name)} — ${text(tier.meta)}</h3>${para(tier.desc)}${plainList(tier.points)}`,
+          ).join(''),
+        ),
+        `<p><a href="/contact">Start a project</a></p>`,
       ].join('');
     case 'works':
       return [
@@ -186,7 +245,7 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
           (data.projects ?? []).map((project) => ({
             href: `/works/${project.slug}`,
             label: project.title,
-            note: project.description,
+            note: [project.category, project.description].filter((part) => part?.trim()).join(': '),
           })),
         ),
       ].join('');
@@ -200,6 +259,7 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
             liveCategories(data).map((category) => ({
               href: `/blog/category/${category.slug}`,
               label: category.title,
+              note: category.description,
             })),
           ),
         ),
@@ -217,6 +277,18 @@ const bodyFor = (data: PortfolioData, page: ResolvedPage | null): string => {
         para(intros.vibe),
         para(data.vibe?.description),
         plainList(data.vibe?.philosophy ?? []),
+        section(
+          'The process.',
+          (data.process ?? [])
+            .filter((step) => step?.title)
+            .map((step) => `<h3>${text(step.title)}</h3>${para(step.description)}`)
+            .join(''),
+        ),
+        section('Tools', plainList((data.tools ?? []).map((tool) => tool?.name))),
+        section(
+          'Why work with me',
+          `${para(VIBE_PROMISE)}${definitions(VIBE_PRINCIPLES.map((item) => ({ term: item.k, detail: item.v })))}`,
+        ),
       ].join('');
     case 'service': {
       const { service } = page;
@@ -376,3 +448,61 @@ ${entries
 
 export const robotsTxt = (data: PortfolioData): string =>
   `User-agent: *\nAllow: /\nDisallow: /dashboard\n\nSitemap: ${absolute(data.seo.siteUrl, '/sitemap.xml')}\n`;
+
+/**
+ * /llms.txt (llmstxt.org): a short Markdown map of the site for AI tools.
+ * No engine has said it reads one, so it is built from the same live content
+ * as the sitemap and costs nothing to keep current. Only indexable pages are
+ * listed — a page held out of search is held out of this too.
+ */
+export const llmsTxt = (data: PortfolioData): string => {
+  const url = (path: string) => absolute(data.seo.siteUrl, canonicalPath(path));
+  const line = (label: string, href: string, note?: string) =>
+    `- [${label}](${href})${note?.trim() ? `: ${note.replace(/\s+/g, ' ').trim()}` : ''}`;
+  const company = data.company;
+  const about = [
+    data.role && data.contact?.location ? `${data.name} is a ${data.role} in ${data.contact.location}.` : '',
+    company?.name ? `${company.role || 'Part'} of ${company.name}${company.url ? ` (${company.url})` : ''}.` : '',
+    data.heroIntro,
+  ]
+    .filter((part) => part?.trim())
+    .join(' ');
+  const services = [
+    ...ownedServices(data).map((service) =>
+      line(service.title, url(`/services/${service.slug}`), service.description),
+    ),
+    ...pointerServices(data).map((service) =>
+      line(`${service.title} (via ${company?.name || 'Limi Creatives'})`, service.externalUrl, service.description),
+    ),
+  ];
+  const posts = indexablePosts(data).map((post) =>
+    line(post.title, url(`/blog/${post.slug}`), post.excerpt?.trim() || summarise(post.content)),
+  );
+  return [
+    `# ${data.name}`,
+    '',
+    `> ${data.seo.description}`,
+    '',
+    about,
+    '',
+    '## Pages',
+    '',
+    line('About', url('/about'), `Who ${data.name} is and the work behind the site.`),
+    line('Services', url('/services'), data.pageIntros?.services),
+    line('Work', url('/works'), data.pageIntros?.works),
+    line('Journal', url('/blog'), data.pageIntros?.blog),
+    line('Contact', url('/contact'), 'Phone, WhatsApp and email.'),
+    '',
+    '## Services',
+    '',
+    ...services,
+    ...(posts.length ? ['', '## Writing', '', ...posts] : []),
+    '',
+    '## Optional',
+    '',
+    line('Gallery', url('/gallery'), data.pageIntros?.gallery),
+    line('Vibe', url('/vibe'), data.pageIntros?.vibe),
+    line('Privacy', url('/privacy')),
+    '',
+  ].join('\n');
+};

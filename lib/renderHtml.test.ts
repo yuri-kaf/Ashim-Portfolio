@@ -5,7 +5,7 @@ import { isoDate, byNewest } from './dates';
 import { markdownToHtml } from './markdownHtml';
 import { resolvePage, summarise } from './pageMeta';
 import { POST_CONTENT_MINIMUM, indexablePosts, postsLinkingTo } from './posts';
-import { renderDocument, renderRoute, sitemapXml } from './renderHtml';
+import { llmsTxt, renderDocument, renderRoute, sitemapXml } from './renderHtml';
 
 const SHELL = `<!DOCTYPE html>
 <html lang="en">
@@ -158,7 +158,7 @@ describe('renderRoute', () => {
   });
 
   it('resolves every route App.tsx declares', () => {
-    for (const path of ['/', '/about', '/contact', '/services', '/works', '/blog', '/gallery', '/vibe', '/dashboard']) {
+    for (const path of ['/', '/about', '/contact', '/services', '/works', '/blog', '/gallery', '/vibe', '/privacy', '/dashboard']) {
       expect(resolvePage(INITIAL_DATA, path), path).not.toBeNull();
     }
     expect(resolvePage(INITIAL_DATA, '/blog/category/design')).not.toBeNull();
@@ -238,5 +238,61 @@ describe('markdownToHtml', () => {
 
   it('drops a javascript: link but keeps its text', () => {
     expect(markdownToHtml('[click](javascript:alert(1))')).not.toContain('href');
+  });
+});
+
+describe('audit of 2026-10-29', () => {
+  const words = (html: string) => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  const headingLevels = (html: string) => [...html.matchAll(/<h([1-6])/g)].map((match) => Number(match[1]));
+
+  it('publishes a privacy notice and links it from every page', () => {
+    const privacy = renderRoute(INITIAL_DATA, '/privacy');
+    expect(privacy.status).toBe(200);
+    expect(privacy.noindex).toBe(false);
+    expect(privacy.body).toContain('<h1>Privacy</h1>');
+    expect(privacy.body).toContain('no visitor cookies');
+    for (const path of ['/', '/about', '/blog', '/services/web-design']) {
+      expect(renderRoute(INITIAL_DATA, path).body).toContain('<a href="/privacy">Privacy</a>');
+    }
+    expect(sitemapXml(INITIAL_DATA, '2026-10-29')).toContain('/privacy</loc>');
+  });
+
+  it('gives the hub pages a description long enough to fill a snippet', () => {
+    for (const path of ['/blog', '/gallery', '/vibe', '/services']) {
+      const tag = renderRoute(INITIAL_DATA, path).headTags.find((entry) => entry.startsWith('<meta name="description"'));
+      const description = tag?.match(/content="([^"]+)"/)?.[1] ?? '';
+      expect(description.length, path).toBeGreaterThanOrEqual(100);
+      expect(description.length, path).toBeLessThanOrEqual(160);
+    }
+  });
+
+  it('prints what the browser shows on /about, /services and /vibe in the server HTML', () => {
+    expect(words(renderRoute(INITIAL_DATA, '/about').body)).toBeGreaterThan(120);
+    const services = renderRoute(INITIAL_DATA, '/services').body;
+    expect(services).toContain('Three ways to engage.');
+    expect(words(services)).toBeGreaterThan(250);
+    expect(renderRoute(INITIAL_DATA, '/vibe').body).toContain('Senior only');
+  });
+
+  it('never skips a heading level on a service page', () => {
+    const levels = headingLevels(renderRoute(INITIAL_DATA, '/services/web-design').body);
+    levels.forEach((level, index) => {
+      if (index) expect(level - levels[index - 1], `h${levels[index - 1]} → h${level}`).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it('gives the agency node its logo and profiles', () => {
+    const graph = renderRoute(INITIAL_DATA, '/').headTags.find((tag) => tag.includes('application/ld+json')) ?? '';
+    expect(graph).toContain('"logo":"https://limicreatives.com/logos/limi-red.svg"');
+    expect(graph).toContain('https://www.linkedin.com/company/limicreatives');
+  });
+
+  it('builds llms.txt from indexable pages only', () => {
+    const data = withPosts();
+    const llms = llmsTxt(data);
+    expect(llms.startsWith(`# ${data.name}\n`)).toBe(true);
+    expect(llms).toContain('/blog/ui-ux-in-nepal-what-it-actually-costs)');
+    expect(llms).not.toContain('/blog/a-draft');
+    expect(llms).toContain('/services/web-design)');
   });
 });

@@ -11,6 +11,20 @@ import { Faq, PortfolioData, SeoDefaults } from '../types.js';
  */
 export const LIMI_ORG_ID = 'https://limicreatives.com/#organization';
 export const PERSON_ID = 'https://www.ashimkafle.com.np/#person';
+
+/**
+ * The agency's logo, as limicreatives.com's own Organization node gives it,
+ * and the profiles its footer links to. Both checked live on 2026-10-29.
+ * Google lists logo and sameAs as recommended for an Organization; repeating
+ * the agency's own values keeps the two sites describing one entity.
+ */
+export const LIMI_ORG_LOGO = 'https://limicreatives.com/logos/limi-red.svg';
+export const LIMI_ORG_SAME_AS = [
+  'https://www.facebook.com/limicreatives',
+  'https://www.instagram.com/limicreatives',
+  'https://www.linkedin.com/company/limicreatives',
+  'https://www.tiktok.com/@limicreatives',
+];
 export const WEBSITE_ID = 'https://www.ashimkafle.com.np/#website';
 
 export const absolute = (siteUrl: string, value: string): string =>
@@ -103,12 +117,15 @@ export const buildGraph = ({
       sameAs: data.social.map((link) => link.url).filter(Boolean),
     },
     {
-      // A reference, not a redefinition. Only what is needed to assert the
-      // relationship — limicreatives.com owns the full definition.
+      // A reference, not a redefinition. What is needed to assert the
+      // relationship, plus the logo and profiles Google recommends, copied
+      // from the agency's own node — limicreatives.com owns the definition.
       '@type': 'Organization',
       '@id': LIMI_ORG_ID,
       name: data.company.name,
       url: data.company.url || undefined,
+      logo: LIMI_ORG_LOGO,
+      sameAs: LIMI_ORG_SAME_AS,
       founder: { '@id': PERSON_ID },
     },
     {

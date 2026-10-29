@@ -8,6 +8,7 @@ import { ArrowRight, ArrowUpRight, Plus, Check } from 'lucide-react';
 import SafeLottie from '../components/SafeLottie';
 import { PortfolioData, Service } from '../types';
 import { ownedServices, pointerServices } from '../lib/services';
+import { ENGAGEMENTS } from '../lib/pageCopy';
 import {
   PageShell,
   Reveal,
@@ -314,27 +315,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ data }) => {
           />
 
           <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-3" stagger={0.12}>
-            {[
-              {
-                name: 'Sprint',
-                meta: '2–3 weeks',
-                desc: 'A focused burst on one surface — a landing page, an onboarding flow, a brand refresh.',
-                points: ['Single deliverable', 'Async updates', 'Fixed scope'],
-              },
-              {
-                name: 'Partner',
-                meta: 'Monthly retainer',
-                desc: 'Embedded design capacity. I work as your design team across whatever ships next.',
-                points: ['Priority access', 'Weekly calls', 'Rolling backlog'],
-                featured: true,
-              },
-              {
-                name: 'Advisory',
-                meta: 'Hourly',
-                desc: 'Critique, design direction, and systems review for teams that already have designers.',
-                points: ['Design reviews', 'Systems audit', 'Team coaching'],
-              },
-            ].map((tier) => (
+            {ENGAGEMENTS.map((tier) => (
               <StaggerItem key={tier.name}>
                 <motion.div
                   whileHover={reduced ? undefined : { y: -8 }}
